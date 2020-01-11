@@ -20,11 +20,20 @@ public class Constants{
     public final static double kDriveP = 0;
     public final static double kDriveI = 0;
     public final static double kDriveD = 0;
-    public final static TrapezoidProfile.Constraints kDriveConstraints = 
-                    new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel);
+    public final static TrapezoidProfile.Constraints kDriveConstraints = new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel);
 
     public final static double kDriveMaxVel = 2;
     public final static double kDriveMaxAccel = 1;
+
+    //Drive neo pid constants
+    public final static double kNeoDriveP = 5e-5;
+    public final static double kNeoDriveI = 0;
+    public final static double kNeoDriveD = 0;
+    public final static double kNeoDriveIz = 0;
+    public final static double kNeoDriveF = 0;
+    public final static double kMinOutput = -1;
+    public final static double kMaxOutput = 1;
+    
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;
