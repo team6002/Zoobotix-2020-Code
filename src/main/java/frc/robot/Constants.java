@@ -23,8 +23,8 @@ public class Constants{
     public final static TrapezoidProfile.Constraints kDriveConstraints = 
                     new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel);
 
-    public final static double kDriveMaxVel = 5;
-    public final static double kDriveMaxAccel = 5;
+    public final static double kDriveMaxVel = 2;
+    public final static double kDriveMaxAccel = 1;
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;

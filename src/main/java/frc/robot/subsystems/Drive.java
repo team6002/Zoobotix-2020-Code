@@ -16,6 +16,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.Constants;
@@ -66,7 +67,10 @@ public class Drive extends Subsystem {
     mLeftMaster.setOpenLoopRampRate(0.1);
     mRightMaster.setOpenLoopRampRate(0.1);
 
-
+    //reset encoder and profile controller
+    mLeftEncoder.setPosition(0);
+    mRightEncoder.setPosition(0);
+    mController.reset(mLeftEncoder.getPosition());
   }
   Solenoid mShifter = new Solenoid(Constants.kShifter);
 
@@ -116,7 +120,9 @@ public class Drive extends Subsystem {
   }
 
   public void setOpenLoop(double left, double right){
-    mControlState = ControlState.OPEN_LOOP;
+    if(mControlState != ControlState.OPEN_LOOP){
+      mControlState = ControlState.OPEN_LOOP;
+    }
     mRightMaster.set(right);
     mLeftMaster.set(left);
   }
@@ -126,12 +132,15 @@ public class Drive extends Subsystem {
   }
 
   public void setGoal(int goal){
+    if(mControlState != ControlState.PROFILE){
+      mControlState = ControlState.PROFILE;
+    }
     mController.setGoal(goal);
   }
 
   public void updateProfile(){
     //have velocity follow the trapezoid pattern
-    mController.calculate(mLeftEncoder.getVelocity());
+    mController.calculate(mLeftEncoder.getPosition());
   }
 
   public boolean finishedGoal(){
@@ -140,6 +149,11 @@ public class Drive extends Subsystem {
 
   void stop(){
     setOpenLoop(0, 0);
+  }
+
+  public void outputToSmartDashboard(){
+    SmartDashboard.putNumber("Controller setpoint", mController.getSetpoint().position);
+    SmartDashboard.putNumber("Controller goal", mController.getGoal().position);
   }
 
 }
