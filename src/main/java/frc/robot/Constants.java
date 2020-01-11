@@ -1,6 +1,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
+
 //file to hold constants used around the robot.
 
 public class Constants{
@@ -18,6 +20,8 @@ public class Constants{
     public final static double kDriveP = 0;
     public final static double kDriveI = 0;
     public final static double kDriveD = 0;
+    public final static TrapezoidProfile.Constraints kDriveConstraints = 
+                    new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel);
 
     public final static double kDriveMaxVel = 5;
     public final static double kDriveMaxAccel = 5;

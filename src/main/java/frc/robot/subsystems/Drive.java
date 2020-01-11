@@ -8,6 +8,8 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.EncoderType;
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 // import com.revrobotics.*;
 
@@ -37,11 +39,17 @@ public class Drive extends Subsystem {
   CANSparkMax mLeftSlave = new CANSparkMax(Constants.kDriveLeftSlave, MotorType.kBrushless);
   CANSparkMax mRightSlave = new CANSparkMax(Constants.kDriveRightSlave, MotorType.kBrushless);
 
+  //drive encoders.
+  CANEncoder mLeftEncoder = mLeftMaster.getEncoder(EncoderType.kQuadrature, 4096);
+  CANEncoder mRightEncoder = mRightMaster.getEncoder(EncoderType.kQuadrature, 4096);
+
   DifferentialDrive mRoboDrive = new DifferentialDrive(mLeftMaster, mRightMaster);
 
   //pid controller with trapezoid profile.
-  ProfiledPIDController mController = new ProfiledPIDController(Constants.kDriveP, Constants.kDriveI, Constants.kDriveD, 
-                      new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel));
+  ProfiledPIDController mController = new ProfiledPIDController(Constants.kDriveP, Constants.kDriveI, Constants.kDriveD,
+                  Constants.kDriveConstraints, Constants.kDt);
+
+  private final double kDegreePerInch = 360*(3.14/6); //don't know if this is still valid for pneumatics
   
   private Drive(){
     mLeftMaster.restoreFactoryDefaults();
@@ -58,6 +66,7 @@ public class Drive extends Subsystem {
     mLeftMaster.setOpenLoopRampRate(0.1);
     mRightMaster.setOpenLoopRampRate(0.1);
 
+
   }
   Solenoid mShifter = new Solenoid(Constants.kShifter);
 
@@ -73,6 +82,7 @@ public class Drive extends Subsystem {
     // Set the default command for a subsystem here.
     // setDefaultCommand(new MySpecialCommand());
   }
+  
   public void registerEnabledLoops(ILooper mEnabledLooper) {
     mEnabledLooper.register(new Loop() {
         @Override
@@ -89,6 +99,10 @@ public class Drive extends Subsystem {
                   case OPEN_LOOP:
                     break;
                   case PROFILE:
+                    updateProfile();
+                    break;
+                  default:
+                    System.out.println("Unexpected drive control state: " + mControlState);
                     break;
                 }
             }
@@ -96,12 +110,13 @@ public class Drive extends Subsystem {
 
         @Override
         public void onStop(double timestamp) {
-
+          stop();
         }
     });
   }
 
   public void setOpenLoop(double left, double right){
+    mControlState = ControlState.OPEN_LOOP;
     mRightMaster.set(right);
     mLeftMaster.set(left);
   }
@@ -110,5 +125,17 @@ public class Drive extends Subsystem {
     mRoboDrive.arcadeDrive(throttle, turn);
   }
 
+  public void setGoal(int goal){
+    mController.setGoal(goal);
+  }
+
+  public void updateProfile(){
+    //have velocity follow the trapezoid pattern
+    mController.calculate(mLeftEncoder.getVelocity());
+  }
+
+  void stop(){
+    setOpenLoop(0, 0);
+  }
 
 }
