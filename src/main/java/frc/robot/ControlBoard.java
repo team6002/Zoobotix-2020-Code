@@ -8,6 +8,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.lib.util.LatchedBoolean;
 /**
  * Add your docs here.
@@ -22,7 +24,15 @@ public class ControlBoard {
         return mInstance;
     }
 
-    private Joystick xbox = new Joystick(0);
+    private XboxController xbox = new XboxController(0);
+
+    public double getThrottle(){
+        return xbox.getY(Hand.kLeft);
+    }
+
+    public double getTurn(){
+        return xbox.getX(Hand.kRight);
+    }
 
     
 }

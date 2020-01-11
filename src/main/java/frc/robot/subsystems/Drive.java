@@ -9,15 +9,18 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.*;
+// import com.revrobotics.*;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
+import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.Constants;
 import frc.robot.loops.*;
 
 /**
- * The drive subsystem.  Controls the drivetrain on teh robot.
+ * The drive subsystem.  Controls the drivetrain on the robot.
  */
 public class Drive extends Subsystem {
   private static Drive mInstance;
@@ -34,7 +37,11 @@ public class Drive extends Subsystem {
   CANSparkMax mLeftSlave = new CANSparkMax(Constants.kDriveLeftSlave, MotorType.kBrushless);
   CANSparkMax mRightSlave = new CANSparkMax(Constants.kDriveRightSlave, MotorType.kBrushless);
 
+  DifferentialDrive mRoboDrive = new DifferentialDrive(mLeftMaster, mRightMaster);
 
+  //pid controller with trapezoid profile.
+  ProfiledPIDController mController = new ProfiledPIDController(Constants.kDriveP, Constants.kDriveI, Constants.kDriveD, 
+                      new TrapezoidProfile.Constraints(Constants.kDriveMaxVel, Constants.kDriveMaxAccel));
   
   private Drive(){
     mLeftMaster.restoreFactoryDefaults();
@@ -50,7 +57,6 @@ public class Drive extends Subsystem {
     mRightMaster.setInverted(false);
     mLeftMaster.setOpenLoopRampRate(0.1);
     mRightMaster.setOpenLoopRampRate(0.1);
-    
 
   }
   Solenoid mShifter = new Solenoid(Constants.kShifter);
@@ -101,6 +107,8 @@ public class Drive extends Subsystem {
   }
 
   public void arcadeDrive(double throttle, double turn){
-    setOpenLoop(throttle + turn, throttle - turn);
+    mRoboDrive.arcadeDrive(throttle, turn);
   }
+
+
 }
