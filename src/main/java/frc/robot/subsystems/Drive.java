@@ -134,6 +134,10 @@ public class Drive extends Subsystem {
     mController.calculate(mLeftEncoder.getVelocity());
   }
 
+  public boolean finishedGoal(){
+    return mController.atSetpoint();
+  }
+
   void stop(){
     setOpenLoop(0, 0);
   }
