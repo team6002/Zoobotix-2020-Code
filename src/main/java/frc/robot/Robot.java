@@ -33,6 +33,7 @@ public class Robot extends TimedRobot {
 
   private Looper mEnabledLooper = new Looper();
 
+
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
 
@@ -42,6 +43,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    mDrive.registerEnabledLoops(mEnabledLooper);
+
+
     m_oi = new OI();
     m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
@@ -67,6 +71,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledInit() {
+    mEnabledLooper.stop();
   }
 
   @Override
@@ -100,6 +105,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.start();
     }
+
+    mEnabledLooper.start();
   }
 
   /**
@@ -119,6 +126,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+    mEnabledLooper.start();
   }
 
   /**
