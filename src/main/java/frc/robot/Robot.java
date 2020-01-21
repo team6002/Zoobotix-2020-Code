@@ -16,6 +16,7 @@ import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.Drive;
 import frc.robot.ControlBoard;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Shooter;
 import frc.robot.loops.*;
 
 /**
@@ -29,6 +30,7 @@ public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
   public static Drive mDrive = Drive.getInstance();
+  public static Shooter mShooter = Shooter.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
 
   private Looper mEnabledLooper = new Looper();
@@ -44,6 +46,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     mDrive.registerEnabledLoops(mEnabledLooper);
+    mShooter.registerEnabledLoops(mEnabledLooper);
 
 
     m_oi = new OI();
@@ -137,7 +140,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
-    mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
+    // mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
   }
 
   /**

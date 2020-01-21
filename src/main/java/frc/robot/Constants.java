@@ -33,7 +33,36 @@ public class Constants{
     public final static double kNeoDriveF = 0;
     public final static double kMinOutput = -1;
     public final static double kMaxOutput = 1;
+
     
+    //shooter ports
+    public final static int kShooterMaster = 0;
+    public final static int kShooterSlave = 0;
+
+    
+
+    //shooter pid constants
+    public final static double kShooterP = 0.2;
+    public final static double kShooterI = 0;
+    public final static double kShooterD = 0;
+    public final static double kShooterIz = 0;
+    public final static double kShooterF = 0;
+
+    public final static double kShooterMaxVel = 100;
+    public final static double kShooterMaxAccel = 10;
+
+    //indexer port
+    public final static int kIndexer = 0;
+
+    //indexer pid constants
+    public final static double kIndexerP = 0.2;
+    public final static double kIndexerI = 0;
+    public final static double kIndexerD = 0;
+    public final static double kIndexerIz = 0;
+    public final static double kIndexerF = 0;
+
+    public final static double kIndexerMaxVel = 5;
+    public final static double kIndexerMaxAccel = 5;
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;
