@@ -16,6 +16,7 @@ import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.Drive;
 import frc.robot.ControlBoard;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.LED;
 import frc.robot.loops.*;
 
 /**
@@ -30,6 +31,8 @@ public class Robot extends TimedRobot {
   public static OI m_oi;
   public static Drive mDrive = Drive.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
+  public static LED mLed = LED.getInstance();
+  
 
   private Looper mEnabledLooper = new Looper();
 
@@ -44,6 +47,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     mDrive.registerEnabledLoops(mEnabledLooper);
+    mLed.makeymakey(-0.17);
+    
 
 
     m_oi = new OI();

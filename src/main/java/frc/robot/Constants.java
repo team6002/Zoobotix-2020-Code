@@ -15,6 +15,18 @@ public class Constants{
     public final static int kShifter = 0;
     public final static double kLooperDt = 0.01;
 
+    // conveyor ports
+    public final static int kIntakeA = 0;
+    public final static int kIntakeB = 0;
+    public final static int kIntakeC = 0;
+
+    // intake ports
+    public final static int kIntakeD = 0;
+
+    // led ports
+    public final static int kled = 0;
+    
+
     //Drive pid constants
     public final static double kDt = 0.02;
     public final static double kDriveP = 0;
