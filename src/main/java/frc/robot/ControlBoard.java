@@ -26,6 +26,11 @@ public class ControlBoard {
 
     private XboxController xbox = new XboxController(0);
 
+    private LatchedBoolean aEdge = new LatchedBoolean();
+    private LatchedBoolean bEdge = new LatchedBoolean();
+    private LatchedBoolean xEdge = new LatchedBoolean();
+    private LatchedBoolean yEdge = new LatchedBoolean();
+
     public double getThrottle(){
         return xbox.getY(Hand.kLeft);
     }
@@ -34,5 +39,17 @@ public class ControlBoard {
         return xbox.getX(Hand.kRight);
     }
 
+    public boolean getA(){
+        return xbox.getAButton();
+    }
+    public boolean getB(){
+        return xbox.getBButton();
+    }
+    public boolean getX(){
+        return xbox.getXButtonPressed();
+    }
+    public boolean getY(){
+        return xbox.getYButtonPressed();
+    }
     
 }

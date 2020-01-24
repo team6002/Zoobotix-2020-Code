@@ -38,7 +38,8 @@ public class Shooter extends Subsystem {
   CANSparkMax mShooterSlave = new CANSparkMax(Constants.kShooterSlave, MotorType.kBrushless);
 
   //encoder
-  CANEncoder mShooterEncoder = mShooterMaster.getEncoder(EncoderType.kQuadrature, 4096);
+  CANEncoder mShooterEncoder = mShooterMaster.getEncoder();
+  CANEncoder mShooterSlaveEncoder = mShooterSlave.getEncoder();
 
   //pid controller
   CANPIDController mController = mShooterMaster.getPIDController();
@@ -47,18 +48,21 @@ public class Shooter extends Subsystem {
     mShooterMaster.restoreFactoryDefaults();
     mShooterSlave.restoreFactoryDefaults();
 
-    mShooterSlave.follow(mShooterMaster);
+    // mShooterSlave.follow(mShooterMaster, true);
+    mShooterSlave.follow(mShooterMaster, true);
 
     //set up pid configs for the pid controller
     mController.setP(Constants.kShooterP);
     mController.setI(Constants.kShooterI);
     mController.setD(Constants.kShooterD);
+    mController.setFF(Constants.kShooterF);
     mController.setIZone(Constants.kShooterIz);
     mController.setOutputRange(Constants.kMinOutput, Constants.kMaxOutput);
     mController.setSmartMotionMaxAccel(Constants.kShooterMaxAccel, 0);
     mController.setSmartMotionMaxVelocity(Constants.kShooterMaxVel, 0);
 
     mShooterMaster.setInverted(false);
+    // mShooterSlave.setInverted(false);
     mShooterMaster.setIdleMode(IdleMode.kCoast);
     mShooterSlave.setIdleMode(IdleMode.kCoast);
 
@@ -107,7 +111,8 @@ public class Shooter extends Subsystem {
     if(mControlState != ControlState.OPEN_LOOP){
       mControlState = ControlState.OPEN_LOOP;
     }
-    mController.setReference(value, ControlType.kVoltage);
+
+    mController.setReference(value, ControlType.kDutyCycle);
   }
 
   public void setVelocity(double setpoint){
@@ -115,7 +120,7 @@ public class Shooter extends Subsystem {
       mControlState = ControlState.VELOCITY;
     }
 
-    mController.setReference(setpoint, ControlType.kSmartVelocity);
+    mController.setReference(setpoint, ControlType.kVelocity);
 
   }
 
@@ -125,6 +130,9 @@ public class Shooter extends Subsystem {
 
   public void outputToSmartDashboard(){
     SmartDashboard.putNumber("Shooter Velocity", getVelocity());
+    SmartDashboard.putNumber("Master Shooter Value", mShooterMaster.getOutputCurrent());
+    SmartDashboard.putNumber("Slave Shooter Value", mShooterSlave.getOutputCurrent());
+    SmartDashboard.putString("Shooter C.State", mControlState.toString());
   }
 
   private void stop(){
