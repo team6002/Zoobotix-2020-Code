@@ -51,5 +51,20 @@ public class ControlBoard {
     public boolean getY(){
         return xbox.getYButtonPressed();
     }
-    
+    public boolean getReadyShooterButton(){
+        return xbox.getBumper(Hand.kRight);
+    }
+    public boolean getIntakeButton(){
+        return xbox.getBumper(Hand.kLeft);
+    }
+    public boolean getShootButton(){
+        return xbox.getTriggerAxis(Hand.kRight) > 0.5;
+    }
+
+    public boolean getHintLeft(){
+        return xbox.getPOV() == 270;
+    }
+    public boolean getHintRight(){
+        return xbox.getPOV() == 90;
+    }
 }

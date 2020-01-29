@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.lib.util.Util;
 import frc.robot.Constants;
 import frc.robot.loops.*;
 
@@ -43,6 +44,14 @@ public class Shooter extends Subsystem {
 
   //pid controller
   CANPIDController mController = mShooterMaster.getPIDController();
+
+  //variables
+  boolean isReady = false;
+  double setpoint = 0;
+  boolean shotBall = false;
+
+  //distance-rpm table NEEDS ACTUAL VALUES
+  double[] distanceRPM = {2000, 2500, 2750};
 
   public Shooter(){
     mShooterMaster.restoreFactoryDefaults();
@@ -92,6 +101,18 @@ public class Shooter extends Subsystem {
                   case OPEN_LOOP:
                     break;
                   case VELOCITY:
+                    if(Util.epsilonEquals(getVelocity(), setpoint, 150)){
+                      isReady = true;
+                    }else{
+                      isReady = false;
+                    }
+
+                    //check if a ball was shot by seeing drops in velocity.
+                    if(Math.abs(setpoint - getVelocity()) < 150){
+                      shotBall = true;
+                    }else{
+                      shotBall = false;
+                    }
                     break;
                   default:
                     System.out.println("Unexpected shooter control state: " + mControlState);
@@ -107,6 +128,7 @@ public class Shooter extends Subsystem {
     });
   }
 
+
   public void setOpenLoop(double value){
     if(mControlState != ControlState.OPEN_LOOP){
       mControlState = ControlState.OPEN_LOOP;
@@ -115,13 +137,37 @@ public class Shooter extends Subsystem {
     mController.setReference(value, ControlType.kDutyCycle);
   }
 
-  public void setVelocity(double setpoint){
+  public void setVelocity(double pWanted){
     if(mControlState != ControlState.VELOCITY){
       mControlState = ControlState.VELOCITY;
     }
+    
+    setpoint = pWanted;
+    mController.setReference(pWanted, ControlType.kVelocity);
 
-    mController.setReference(setpoint, ControlType.kVelocity);
+  }
 
+  public double getRPM(double distance){//grab rpm from table
+    if(distance >= 25){
+      return distanceRPM[2];
+    }else if(distance >= 10){
+      return distanceRPM[1];
+    }else{
+      return distanceRPM[0];
+    }
+    
+  }
+
+  public boolean getShotBall(){
+    return shotBall;
+  }
+
+  public boolean getIsReady(){
+    return isReady;
+  }
+
+  public synchronized double getSetpoint(){
+    return setpoint;
   }
 
   public synchronized double getVelocity(){
@@ -135,7 +181,7 @@ public class Shooter extends Subsystem {
     SmartDashboard.putString("Shooter C.State", mControlState.toString());
   }
 
-  private void stop(){
+  public synchronized void stop(){
     setOpenLoop(0);
   }
 

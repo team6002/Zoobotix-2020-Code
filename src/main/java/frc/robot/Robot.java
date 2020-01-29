@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -15,6 +16,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.ControlBoard;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.Superstructure.SystemState;
+import frc.robot.subsystems.Superstructure.WantedState;
+import frc.robot.subsystems.Turret.Hint;
 import frc.robot.loops.*;
 
 /**
@@ -27,12 +31,15 @@ import frc.robot.loops.*;
 public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
+  public static Superstructure mSuperstructure = Superstructure.getInstance();
   public static Drive mDrive = Drive.getInstance();
   public static Shooter mShooter = Shooter.getInstance();
+  public static Turret mTurret = Turret.getInstance();
   public static Indexer mIndexer = Indexer.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
 
   private Looper mEnabledLooper = new Looper();
+
 
 
   Command m_autonomousCommand;
@@ -44,8 +51,14 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    
+    mSuperstructure.registerEnabledLoops(mEnabledLooper);
     mDrive.registerEnabledLoops(mEnabledLooper);
     mShooter.registerEnabledLoops(mEnabledLooper);
+    mTurret.registerEnabledLoops(mEnabledLooper);
+
+    //initialize networktables
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
 
     m_oi = new OI();
@@ -139,16 +152,33 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
-    // mShooter.setOpenLoop(mControlBoard.getThrottle());
 
-    // mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
-    if(mControlBoard.getA()){
+    mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
+    
+    if(mControlBoard.getIntakeButton()){
+      mSuperstructure.setWantedState(WantedState.INTAKE);
+    }
+    if(mControlBoard.getReadyShooterButton()){
+      mSuperstructure.setWantedState(WantedState.SHOOT);
+    }
 
-      mShooter.setOpenLoop(0);
+    if(mControlBoard.getHintLeft()){
+      mSuperstructure.setTurretHint(Hint.LEFT);
     }
-    if(mControlBoard.getB()){
-      mShooter.setVelocity(2000);
+    if(mControlBoard.getHintRight()){
+      mSuperstructure.setTurretHint(Hint.RIGHT);
     }
+
+    if(mSuperstructure.getSystemState() == SystemState.READY_TO_SHOOT){
+      if(mControlBoard.getShootButton()){
+        mSuperstructure.shoot(true);
+      }else{
+        mSuperstructure.shoot(false);
+      }
+    }else {
+      mSuperstructure.shoot(false);
+    }
+
 
     mShooter.outputToSmartDashboard();
   }

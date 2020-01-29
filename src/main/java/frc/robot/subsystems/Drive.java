@@ -193,7 +193,7 @@ public class Drive extends Subsystem {
     return mIsBrakeMode;
   }
 
-  void stop(){
+  public synchronized void stop(){
     setOpenLoop(0, 0);
   }
 

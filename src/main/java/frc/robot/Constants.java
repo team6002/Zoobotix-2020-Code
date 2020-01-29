@@ -7,12 +7,13 @@ import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 
 public class Constants{
     //drive ports
-    public final static int kDriveLeftMaster = 0;//1;
-    public final static int kDriveLeftSlave = 0;//16;
-    public final static int kDriveRightMaster = 0;//14;
-    public final static int kDriveRightSlave = 0;//15;
+    public final static int kDriveLeftMaster = 1;//1;
+    public final static int kDriveLeftSlave = 2;//16;
+    public final static int kDriveRightMaster = 3;//14;
+    public final static int kDriveRightSlave = 4;//15;
 
     public final static int kShifter = 0;
+
     public final static double kLooperDt = 0.01;
 
     //Drive pid constants
@@ -37,10 +38,8 @@ public class Constants{
     
     //shooter ports 
     //TEMP NUMS
-    public final static int kShooterMaster = 1;//1
+    public final static int kShooterMaster = 14;//1
     public final static int kShooterSlave = 15;//15
-
-    
 
     //shooter pid constants
     public final static double kShooterP = 0.000023;
@@ -52,8 +51,19 @@ public class Constants{
     public final static double kShooterMaxVel = 5000;
     public final static double kShooterMaxAccel = 2500;
 
+    //turret ports
+    public final static int kTurret = 13;
+
+    //turret pid constants
+    public final static int kTurretP = 0;
+    public final static int kTurretI = 0;
+    public final static int kTurretD = 0;
+    public final static int kTurretIz = 0;
+    public final static double kTurretF = 0;
+
+
     //indexer port
-    public final static int kIndexer = 0;
+    public final static int kIndexer = 12;
 
     //indexer pid constants
     public final static double kIndexerP = 0;
@@ -64,6 +74,23 @@ public class Constants{
 
     public final static double kIndexerMaxVel = 50;
     public final static double kIndexerMaxAccel = 50;
+
+    
+    //Intake ports
+    public final static int kTopIntake = 5;
+    public final static int kBotIntake = 6;
+    public final static int kGateIntake = 7;
+    public final static int kDeployIntake = 8;
+
+    public final static int kIntakeOut = 1;
+    public final static int kIntakeDown = 2;
+
+    public final static int kCellSensor = 0;
+
+    //Climber Ports
+    public final static int kWinchMaster = 5;
+    public final static int kWinchSlave = 6;
+    public final static int kWinchRatchet = 3;
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;
