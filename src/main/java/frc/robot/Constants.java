@@ -7,25 +7,13 @@ import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 
 public class Constants{
     //drive ports
-    public final static int kDriveLeftMaster = 1;
-    public final static int kDriveLeftSlave = 16;
-    public final static int kDriveRightMaster = 14;
-    public final static int kDriveRightSlave = 15;
+    public final static int kDriveLeftMaster = 0;//1;
+    public final static int kDriveLeftSlave = 0;//16;
+    public final static int kDriveRightMaster = 0;//14;
+    public final static int kDriveRightSlave = 0;//15;
 
     public final static int kShifter = 0;
     public final static double kLooperDt = 0.01;
-
-    // conveyor ports
-    public final static int kIntakeA = 0;
-    public final static int kIntakeB = 0;
-    public final static int kIntakeC = 0;
-
-    // intake ports
-    public final static int kIntakeD = 0;
-
-    // led ports
-    public final static int kled = 0;
-    
 
     //Drive pid constants
     public final static double kDt = 0.02;
@@ -45,7 +33,48 @@ public class Constants{
     public final static double kNeoDriveF = 0;
     public final static double kMinOutput = -1;
     public final static double kMaxOutput = 1;
+
     
+    //shooter ports 
+    //TEMP NUMS
+    public final static int kShooterMaster = 1;//1
+    public final static int kShooterSlave = 15;//15
+
+    
+
+    //shooter pid constants
+    public final static double kShooterP = 0.000023;
+    public final static double kShooterI = 0;//0.0000003;
+    public final static double kShooterD = 0;
+    public final static double kShooterIz = 0;
+    public final static double kShooterF = 0.000194;
+
+    public final static double kShooterMaxVel = 5000;
+    public final static double kShooterMaxAccel = 2500;
+
+    //indexer port
+    public final static int kIndexer = 0;
+
+    //indexer pid constants
+    public final static double kIndexerP = 0;
+    public final static double kIndexerI = 0;
+    public final static double kIndexerD = 0;
+    public final static double kIndexerIz = 0;
+    public final static double kIndexerF = 0;
+
+    public final static double kIndexerMaxVel = 50;
+    public final static double kIndexerMaxAccel = 50;
+
+    // intake constant
+    public final static int kIntakeA = 0;
+    public final static int kIntakeB = 0;
+    public final static int kIntakeC = 0;
+    public final static int kIntakeD = 0;
+
+    // control panel port
+    public final static int kControlPanel = 0;
+    public final static int kControlPanelSolenoid = 0;
+
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;

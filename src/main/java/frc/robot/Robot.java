@@ -13,10 +13,9 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.Drive;
 import frc.robot.ControlBoard;
 import frc.robot.subsystems.ExampleSubsystem;
-import frc.robot.subsystems.LED;
+import frc.robot.subsystems.*;
 import frc.robot.loops.*;
 
 /**
@@ -30,8 +29,9 @@ public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
   public static Drive mDrive = Drive.getInstance();
+  public static Shooter mShooter = Shooter.getInstance();
+  public static Indexer mIndexer = Indexer.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
-  public static LED mLed = LED.getInstance();
   
 
   private Looper mEnabledLooper = new Looper();
@@ -47,8 +47,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     mDrive.registerEnabledLoops(mEnabledLooper);
-    mLed.makeymakey(-0.17);
-    
+    mShooter.registerEnabledLoops(mEnabledLooper);
 
 
     m_oi = new OI();
@@ -142,7 +141,18 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
-    mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
+    // mShooter.setOpenLoop(mControlBoard.getThrottle());
+
+    // mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
+    if(mControlBoard.getA()){
+
+      mShooter.setOpenLoop(0);
+    }
+    if(mControlBoard.getB()){
+      mShooter.setVelocity(2000);
+    }
+
+    mShooter.outputToSmartDashboard();
   }
 
   /**
