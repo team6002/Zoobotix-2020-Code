@@ -7,6 +7,7 @@
 
 package frc.robot.subsystems;
 
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,11 +24,13 @@ public class Superstructure extends Subsystem {
   private Shooter mShooter = Shooter.getInstance();
   private Turret mTurret = Turret.getInstance();
   private Climber mClimber = Climber.getInstance();
+  private ControlPanel mControlPanel = ControlPanel.getInstance();
 
   public enum WantedState {
     IDLE,
     SHOOT,
     INTAKE,
+    DEPLOY_CONTROL_PANEL,
   }
 
   private WantedState mWantedState = WantedState.IDLE;
@@ -35,6 +38,7 @@ public class Superstructure extends Subsystem {
   public enum SystemState {
     IDLE,
     INTAKING,
+    DEPLOYED_CONTROL_PANEL,
     READY_TO_SHOOT,
     WAITING_FOR_FLYWHEEL,
     SHOOTING,
@@ -71,6 +75,9 @@ public class Superstructure extends Subsystem {
               case INTAKING:
                 newState = handleIntaking();
                 break;
+              case DEPLOYED_CONTROL_PANEL:
+                newState = handleDeployedControlPanel();
+                break;
               case WAITING_FOR_FLYWHEEL:
                 newState = handleWaitingForFlywheel();
                 break;
@@ -106,6 +113,8 @@ public class Superstructure extends Subsystem {
     switch(mWantedState){
       case SHOOT:
         return SystemState.SHOOTING;
+      case DEPLOY_CONTROL_PANEL:
+        return SystemState.DEPLOYED_CONTROL_PANEL;
       case INTAKE:
         return SystemState.INTAKING;
       case IDLE:
@@ -128,6 +137,9 @@ public class Superstructure extends Subsystem {
       case IDLE:
         mIntake.setOff();
         return SystemState.IDLE;
+      case DEPLOY_CONTROL_PANEL:
+        mIntake.setOff();
+        return SystemState.DEPLOYED_CONTROL_PANEL;
       case SHOOT:
         if(mShooter.isReady){
           mIntake.setOff();
@@ -141,6 +153,30 @@ public class Superstructure extends Subsystem {
     }
   }
 
+  private SystemState handleDeployedControlPanel(){
+    mControlPanel.deployControlPanel();
+
+    switch(mWantedState){
+      case INTAKE:
+        mControlPanel.stowControlPanel();
+        return SystemState.INTAKING;
+      case DEPLOY_CONTROL_PANEL:
+        return SystemState.DEPLOYED_CONTROL_PANEL;
+      case SHOOT:
+        mControlPanel.stowControlPanel();
+        if(mShooter.isReady){
+          return SystemState.READY_TO_SHOOT;
+        }else{
+          return SystemState.WAITING_FOR_FLYWHEEL;
+        }
+      case IDLE:
+        mControlPanel.stowControlPanel();
+        return SystemState.IDLE;
+      default:
+        return SystemState.DEPLOYED_CONTROL_PANEL;
+    }
+  }
+
   private SystemState handleWaitingForFlywheel(){
     //instead of hard coding value, need to get value from look up distance-rpm table
     mShooter.setVelocity(2500);
@@ -148,6 +184,8 @@ public class Superstructure extends Subsystem {
     switch(mWantedState){
       case INTAKE:
         return SystemState.INTAKING;
+      case DEPLOY_CONTROL_PANEL:
+        return SystemState.DEPLOYED_CONTROL_PANEL;
       case SHOOT:
         if(mShooter.isReady){
           return SystemState.READY_TO_SHOOT;
@@ -206,6 +244,10 @@ public class Superstructure extends Subsystem {
   public void shoot(boolean yes){
     if(yes) wantShoot = true;
     else wantShoot = false;
+  }
+
+  public void wantRotationControl(){
+    mControlPanel.doRotation();
   }
 
   public void setTurretHint(Hint hint){

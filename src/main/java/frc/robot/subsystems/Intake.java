@@ -242,6 +242,7 @@ public class Intake extends Subsystem {
 
   public void outputToSmartDashboard(){
     SmartDashboard.putString("Intake State", mIntakeState.toString());
+    SmartDashboard.putNumber("Power Cells", cellCount);
   }
 
   @Override

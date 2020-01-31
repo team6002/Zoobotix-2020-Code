@@ -37,7 +37,6 @@ public class Constants{
 
     
     //shooter ports 
-    //TEMP NUMS
     public final static int kShooterMaster = 14;//1
     public final static int kShooterSlave = 15;//15
 
@@ -88,9 +87,13 @@ public class Constants{
     public final static int kCellSensor = 0;
 
     //Climber Ports
-    public final static int kWinchMaster = 5;
-    public final static int kWinchSlave = 6;
+    public final static int kWinchMaster = 9;
+    public final static int kWinchSlave = 10;
     public final static int kWinchRatchet = 3;
+
+    // control panel port
+    public final static int kControlPanel = 11;
+    public final static int kControlPanelSolenoid = 4;
 
     //wheel stats
     public final static double kWheelCircumference = Math.PI * 6;

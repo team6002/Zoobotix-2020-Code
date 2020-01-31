@@ -25,6 +25,7 @@ public class ControlBoard {
     }
 
     private XboxController xbox = new XboxController(0);
+    private XboxController operator = new XboxController(1);
 
     private LatchedBoolean aEdge = new LatchedBoolean();
     private LatchedBoolean bEdge = new LatchedBoolean();
@@ -51,20 +52,59 @@ public class ControlBoard {
     public boolean getY(){
         return xbox.getYButtonPressed();
     }
-    public boolean getReadyShooterButton(){
+    public boolean getReadyShooter(){
         return xbox.getBumper(Hand.kRight);
     }
     public boolean getIntakeButton(){
         return xbox.getBumper(Hand.kLeft);
     }
+    public boolean getShiftUp(){
+        return xbox.getTriggerAxis(Hand.kRight) > 0.3;
+    }
+    public boolean getShiftDown(){
+        return xbox.getTriggerAxis(Hand.kLeft) > 0.3;
+    }
     public boolean getShootButton(){
-        return xbox.getTriggerAxis(Hand.kRight) > 0.5;
+        return xbox.getBButton();
+    }
+
+    //operator controls
+    public boolean getOperatorReadyShooter(){
+        return operator.getBumper(Hand.kRight);
+    }
+    public boolean getOperatorShoot(){
+        return operator.getBButton();
+    }
+    public boolean getOperatorIntake(){
+        return operator.getBumper(Hand.kLeft);
+    }
+    public boolean getOperatorIntakeOff(){
+        return operator.getTriggerAxis(Hand.kLeft) > 0.3;
+    }
+    public boolean getOperatorIntakeReverse(){
+        return operator.getXButton();
+    }
+    LatchedBoolean controlPanelEdge = new LatchedBoolean();
+    public boolean getOperatorControlPanel(){
+        return controlPanelEdge.update(operator.getYButton());
+    }
+    public boolean getClimb(){
+        return operator.getStartButton();
     }
 
     public boolean getHintLeft(){
-        return xbox.getPOV() == 270;
+        return operator.getPOV() == 270;
     }
     public boolean getHintRight(){
-        return xbox.getPOV() == 90;
+        return operator.getPOV() == 90;
+    }
+    public boolean getControlPanelLeft(){
+        return operator.getPOV() == 270;
+    }
+    public boolean getControlPanelRight(){
+        return operator.getPOV() == 90;
+    }
+    public boolean getControlPanelSpin(){
+        return operator.getPOV() == 0;
     }
 }

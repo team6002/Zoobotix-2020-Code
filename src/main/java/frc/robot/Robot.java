@@ -36,6 +36,7 @@ public class Robot extends TimedRobot {
   public static Shooter mShooter = Shooter.getInstance();
   public static Turret mTurret = Turret.getInstance();
   public static Indexer mIndexer = Indexer.getInstance();
+  public static ControlPanel mControlPanel = ControlPanel.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
 
   private Looper mEnabledLooper = new Looper();
@@ -158,7 +159,7 @@ public class Robot extends TimedRobot {
     if(mControlBoard.getIntakeButton()){
       mSuperstructure.setWantedState(WantedState.INTAKE);
     }
-    if(mControlBoard.getReadyShooterButton()){
+    if(mControlBoard.getReadyShooter()){
       mSuperstructure.setWantedState(WantedState.SHOOT);
     }
 
@@ -167,6 +168,19 @@ public class Robot extends TimedRobot {
     }
     if(mControlBoard.getHintRight()){
       mSuperstructure.setTurretHint(Hint.RIGHT);
+    }
+    if(mControlBoard.getOperatorControlPanel()){
+      mSuperstructure.setWantedState(WantedState.DEPLOY_CONTROL_PANEL);
+    }
+    
+    if(mSuperstructure.getSystemState() == SystemState.DEPLOYED_CONTROL_PANEL){
+      if(mControlBoard.getControlPanelSpin()){
+        mSuperstructure.wantRotationControl();
+      }else if(mControlBoard.getControlPanelLeft()){
+        mControlPanel.setOpenLoop(-0.1);
+      }else if(mControlBoard.getControlPanelRight()){
+        mControlPanel.setOpenLoop(0.1);
+      }
     }
 
     if(mSuperstructure.getSystemState() == SystemState.READY_TO_SHOOT){
@@ -178,6 +192,8 @@ public class Robot extends TimedRobot {
     }else {
       mSuperstructure.shoot(false);
     }
+
+    
 
 
     mShooter.outputToSmartDashboard();
