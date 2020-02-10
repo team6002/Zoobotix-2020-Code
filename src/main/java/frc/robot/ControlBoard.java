@@ -91,7 +91,12 @@ public class ControlBoard {
     public boolean getClimb(){
         return operator.getStartButton();
     }
-
+    public double getClimbStick(){
+        return -operator.getY(Hand.kLeft);
+    }
+    public double getBalanceStick(){
+        return operator.getX(Hand.kRight);
+    }
     public boolean getHintLeft(){
         return operator.getPOV() == 270;
     }

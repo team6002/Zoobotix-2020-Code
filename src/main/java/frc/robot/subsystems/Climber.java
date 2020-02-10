@@ -31,17 +31,20 @@ public class Climber extends Subsystem {
   //hardware
   TalonSRX mWinchMaster = new TalonSRX(Constants.kWinchMaster);
   TalonSRX mWinchSlave = new TalonSRX(Constants.kWinchSlave);
+  TalonSRX mBalance = new TalonSRX(Constants.kBalance);
   Solenoid mWinchRatchet = new Solenoid(Constants.kWinchRatchet);
 
 
   public Climber(){
     mWinchMaster.configFactoryDefault();
     mWinchSlave.configFactoryDefault();
+    mBalance.configFactoryDefault();
 
     mWinchSlave.set(ControlMode.Follower, Constants.kWinchMaster);
 
     mWinchMaster.setInverted(false);
     mWinchSlave.setInverted(false);
+    mBalance.setInverted(false);
 
     mWinchMaster.setSensorPhase(false);
     mWinchSlave.setSensorPhase(false);
@@ -59,12 +62,17 @@ public class Climber extends Subsystem {
     mWinchRatchet.set(false);
     isWinchEngaged = true;
   }
+  
   public boolean getIsWinchEngaged(){
     return isWinchEngaged;
   }
 
-  public void setWinchVoltage(double value){
+  public void setWinch(double value){
     mWinchMaster.set(ControlMode.PercentOutput, value);
+  }
+
+  public void setBalance(double value){
+    mBalance.set(ControlMode.PercentOutput, value);
   }
 
 

@@ -31,6 +31,7 @@ public class Superstructure extends Subsystem {
     SHOOT,
     INTAKE,
     DEPLOY_CONTROL_PANEL,
+    WANT_CLIMB,
   }
 
   private WantedState mWantedState = WantedState.IDLE;
@@ -42,6 +43,7 @@ public class Superstructure extends Subsystem {
     READY_TO_SHOOT,
     WAITING_FOR_FLYWHEEL,
     SHOOTING,
+    CLIMB,
   }
   private SystemState mSystemState = SystemState.IDLE;
 
@@ -83,6 +85,9 @@ public class Superstructure extends Subsystem {
                 break;
               case READY_TO_SHOOT:
                 newState = handleReadyToShoot();
+                break;
+              case CLIMB: 
+                newState = handleClimb();
                 break;
               default:
                 newState = SystemState.IDLE;
@@ -237,6 +242,24 @@ public class Superstructure extends Subsystem {
         return SystemState.IDLE;
       default:
         return SystemState.SHOOTING;
+    }
+  }
+
+  private SystemState handleClimb(){
+    if(mStateChanged){
+      mClimber.releaseWinch();
+      //TODO code the deployment of climber :)
+    }
+
+    switch(mWantedState){
+      case WANT_CLIMB:
+        return SystemState.CLIMB;
+      case INTAKE:
+        return SystemState.INTAKING;
+      case SHOOT:
+        return SystemState.SHOOTING;
+      default:
+        return SystemState.CLIMB;
     }
   }
 

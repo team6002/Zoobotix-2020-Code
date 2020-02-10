@@ -12,6 +12,7 @@ import com.revrobotics.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.EncoderType;
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 // import com.revrobotics.*;
@@ -19,9 +20,17 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.util.Units;
+import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.I2C.Port;
 import frc.robot.Constants;
 import frc.robot.loops.*;
 
@@ -37,24 +46,32 @@ public class Drive extends Subsystem {
     }
     return mInstance;
   }
-  //motors
+  //hardware
   CANSparkMax mLeftMaster = new CANSparkMax(Constants.kDriveLeftMaster, MotorType.kBrushless);
   CANSparkMax mRightMaster = new CANSparkMax(Constants.kDriveRightMaster, MotorType.kBrushless);
   CANSparkMax mLeftSlave = new CANSparkMax(Constants.kDriveLeftSlave, MotorType.kBrushless);
   CANSparkMax mRightSlave = new CANSparkMax(Constants.kDriveRightSlave, MotorType.kBrushless);
+  Solenoid mShifter = new Solenoid(Constants.kShifter);
 
-  //drive encoders.
   CANEncoder mLeftEncoder = mLeftMaster.getEncoder(EncoderType.kQuadrature, 4096);
   CANEncoder mRightEncoder = mRightMaster.getEncoder(EncoderType.kQuadrature, 4096);
-
+  
   DifferentialDrive mRoboDrive = new DifferentialDrive(mLeftMaster, mRightMaster);
 
-  //pid controller with trapezoid profile.
   ProfiledPIDController mTrapezoidController = new ProfiledPIDController(Constants.kDriveP, Constants.kDriveI, Constants.kDriveD, Constants.kDriveConstraints, Constants.kDt);
-  
-  //pid controller for the neos.
+
   CANPIDController mLeftPIDController = mLeftMaster.getPIDController();
   CANPIDController mRightPIDController = mRightMaster.getPIDController();
+
+  AHRS gyro = new AHRS(Port.kMXP);
+
+  //kinematics and odometry
+  DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(24));
+  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(getHeading());
+
+  Pose2d pose = new Pose2d();
+
+
   
   //hardware state
   private boolean mIsBrakeMode;
@@ -83,11 +100,39 @@ public class Drive extends Subsystem {
     setBrakeMode(false);
 
     //reset encoder and profile controller
-    mLeftEncoder.setPosition(0);
-    mRightEncoder.setPosition(0);
+    resetEncoders();
     mTrapezoidController.reset(mLeftEncoder.getPosition());
   }
-  Solenoid mShifter = new Solenoid(Constants.kShifter);
+
+  public void resetEncoders(){
+    mLeftEncoder.setPosition(0);
+    mRightEncoder.setPosition(0);
+  }
+
+  public Rotation2d getHeading(){
+    return Rotation2d.fromDegrees(-gyro.getAngle());
+  }
+  public Pose2d getPose(){
+    return pose;
+  }
+  public DifferentialDriveKinematics getKinematics(){
+    return kinematics;
+  }
+  public DifferentialDriveWheelSpeeds getWheelSpeeds(){
+    return new DifferentialDriveWheelSpeeds(mLeftEncoder.getVelocity(), mRightEncoder.getVelocity());
+  }
+  public CANPIDController getLeftPidController(){
+    return mLeftPIDController;
+  }
+  public CANPIDController getRightPidController(){
+    return mRightPIDController;
+  }
+  public void setVoltage(double leftVolts, double rightVolts){
+    mLeftMaster.setVoltage(leftVolts);
+    mRightMaster.setVoltage(rightVolts);
+    mRoboDrive.feed();
+  }
+  
 
   private enum ControlState {
     OPEN_LOOP,
@@ -114,6 +159,8 @@ public class Drive extends Subsystem {
         @Override
         public void onLoop(double timestamp) {
             synchronized (Drive.this) {
+                odometry.update(getHeading(), mLeftEncoder.getPosition(), mRightEncoder.getPosition());
+
                 switch(mControlState){
                   case OPEN_LOOP:
                     break;

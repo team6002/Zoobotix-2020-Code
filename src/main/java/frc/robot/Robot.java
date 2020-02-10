@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -35,12 +36,13 @@ public class Robot extends TimedRobot {
   public static Drive mDrive = Drive.getInstance();
   public static Shooter mShooter = Shooter.getInstance();
   public static Turret mTurret = Turret.getInstance();
-  public static Indexer mIndexer = Indexer.getInstance();
   public static ControlPanel mControlPanel = ControlPanel.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
+  public static Climber mClimber = Climber.getInstance();
 
   private Looper mEnabledLooper = new Looper();
 
+  String gameData;
 
 
   Command m_autonomousCommand;
@@ -78,6 +80,13 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    gameData = DriverStation.getInstance().getGameSpecificMessage();
+    if(gameData.length() > 0){
+      SmartDashboard.putString("Color For Position", gameData);
+    }else{
+      SmartDashboard.putString("Color For Position", "N/A");
+    }
+    
   }
 
   /**
@@ -193,6 +202,14 @@ public class Robot extends TimedRobot {
       mSuperstructure.shoot(false);
     }
 
+    if(mControlBoard.getClimb()){
+      mSuperstructure.setWantedState(WantedState.WANT_CLIMB);
+    }
+
+    if(mSuperstructure.getSystemState() == SystemState.CLIMB){
+      mClimber.setWinch(mControlBoard.getClimbStick());
+      mClimber.setBalance(mControlBoard.getBalanceStick());
+    }
     
 
 

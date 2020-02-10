@@ -62,7 +62,9 @@ public class Constants{
 
 
     //indexer port
-    public final static int kIndexer = 12;
+    //TODO decide if we need this
+    public final static int kIndexer = 0;
+
 
     //indexer pid constants
     public final static double kIndexerP = 0;
@@ -90,6 +92,7 @@ public class Constants{
     public final static int kWinchMaster = 9;
     public final static int kWinchSlave = 10;
     public final static int kWinchRatchet = 3;
+    public final static int kBalance = 12;
 
     // control panel port
     public final static int kControlPanel = 11;
