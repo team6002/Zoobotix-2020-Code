@@ -6,13 +6,40 @@ import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 //file to hold constants used around the robot.
 
 public class Constants{
-    //drive ports
-    public final static int kDriveLeftMaster = 1;//1;
-    public final static int kDriveLeftSlave = 2;//16;
-    public final static int kDriveRightMaster = 3;//14;
-    public final static int kDriveRightSlave = 4;//15;
+    //drive values (generated from frc characterization tool)
+    public static final double ksVolts = 0.101;//0.0982
+    public static final double kvVoltSecondsPerMeter = 3.94;//3.87;
+    public static final double kaVoltSecondsSquaredPerMeter = 0.448;//0.39;
+    //Ramsete controller pid for left and right controllers
+    public static final double kDrivePVel = 1.76;//14.7;
+    public static final double kDriveDVel = 0;
 
-    public final static int kShifter = 0;
+    public static final double kRamseteB = 2;
+    public static final double kRamseteZeta = 0.7;
+
+    //hardware facts
+    public static final double kTrackWidthInches = 24.528;
+    public static final double kTrackWidthMeters = 0.628;
+    public static final double kCountsPerRevolution = 42; //for the neo's internal encoder
+    
+    //wheel stats
+    public static final double kWheelRadiusInches = 3;
+    public static final double kWheelCircumferenceInches = 2 * Math.PI * kWheelRadiusInches;
+    public static final double kTicksPerInch = 360/kWheelCircumferenceInches;
+    
+
+    public static final double kMaxSpeedMetersPerSecond = 3;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+
+    public static final double kLowGearRatio = 15;
+    public static final double kHighGearRatio = 7.29;
+    //drive ports
+    public final static int kDriveLeftMaster = 15;//1;
+    public final static int kDriveLeftSlave = 14;//16;
+    public final static int kDriveRightMaster = 16;//14;
+    public final static int kDriveRightSlave = 1;//15;
+
+    public final static int kShifter = 3;
 
     public final static double kLooperDt = 0.01;
 
@@ -27,7 +54,7 @@ public class Constants{
     public final static double kDriveMaxAccel = 1;
 
     //Drive neo pid constants
-    public final static double kNeoDriveP = 5e-5;
+    public final static double kNeoDriveP = 0.0;//5e-5;
     public final static double kNeoDriveI = 0;
     public final static double kNeoDriveD = 0;
     public final static double kNeoDriveIz = 0;
@@ -37,21 +64,21 @@ public class Constants{
 
     
     //shooter ports 
-    public final static int kShooterMaster = 14;//1
-    public final static int kShooterSlave = 15;//15
+    public final static int kShooterMaster = 2;
+    public final static int kShooterSlave = 3;
 
     //shooter pid constants
-    public final static double kShooterP = 0.000023;
-    public final static double kShooterI = 0;//0.0000003;
-    public final static double kShooterD = 0;
+    public final static double kShooterP = 0.00068;
+    public final static double kShooterI = 0;
+    public final static double kShooterD = 0.00000750;
     public final static double kShooterIz = 0;
-    public final static double kShooterF = 0.000194;
+    public final static double kShooterF = 0.000180;
 
     public final static double kShooterMaxVel = 5000;
     public final static double kShooterMaxAccel = 2500;
 
     //turret ports
-    public final static int kTurret = 13;
+    public final static int kTurret = 5;
 
     //turret pid constants
     public final static int kTurretP = 0;
@@ -59,47 +86,34 @@ public class Constants{
     public final static int kTurretD = 0;
     public final static int kTurretIz = 0;
     public final static double kTurretF = 0;
-
-
-    //indexer port
-    //TODO decide if we need this
-    public final static int kIndexer = 0;
-
-
-    //indexer pid constants
-    public final static double kIndexerP = 0;
-    public final static double kIndexerI = 0;
-    public final static double kIndexerD = 0;
-    public final static double kIndexerIz = 0;
-    public final static double kIndexerF = 0;
-
-    public final static double kIndexerMaxVel = 50;
-    public final static double kIndexerMaxAccel = 50;
-
     
     //Intake ports
-    public final static int kTopIntake = 5;
-    public final static int kBotIntake = 6;
-    public final static int kGateIntake = 7;
-    public final static int kDeployIntake = 8;
+    public final static int kTopIntake = 10;
+    public final static int kBotIntake = 4;
+    public final static int kGateIntake = 11;
+    public final static int kDeployIntake = 13;
 
     public final static int kIntakeOut = 1;
-    public final static int kIntakeDown = 2;
+    public final static int kIntakeDown = 5;
 
     public final static int kCellSensor = 0;
 
     //Climber Ports
-    public final static int kWinchMaster = 9;
-    public final static int kWinchSlave = 10;
-    public final static int kWinchRatchet = 3;
+    public final static int kWinchMaster = 6;
     public final static int kBalance = 12;
+    //solenoids
+    public final static int kWinchRatchet = 6;
+    public final static int kClimberDeploy = 2;//change
+
+    //climber pid constants
+    public final static double kClimberP = 0;
+    public final static double kClimberI = 0;
+    public final static double kClimberD = 0;
+    public final static double kClimberIz = 0;
+    public final static double kClimberF = 0;
 
     // control panel port
     public final static int kControlPanel = 11;
-    public final static int kControlPanelSolenoid = 4;
-
-    //wheel stats
-    public final static double kWheelCircumference = Math.PI * 6;
-    public final static double kTicksPerInch = 360/kWheelCircumference;
+    public final static int kControlPanelSolenoid = 7;
 
 }

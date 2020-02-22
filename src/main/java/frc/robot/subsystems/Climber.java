@@ -9,10 +9,15 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.revrobotics.CANEncoder;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
 /**
@@ -29,27 +34,34 @@ public class Climber extends Subsystem {
   }
   
   //hardware
-  TalonSRX mWinchMaster = new TalonSRX(Constants.kWinchMaster);
-  TalonSRX mWinchSlave = new TalonSRX(Constants.kWinchSlave);
+  CANSparkMax mWinchMaster = new CANSparkMax(Constants.kWinchMaster, MotorType.kBrushless);
+  CANEncoder mEncoder = mWinchMaster.getEncoder();
+  CANPIDController mController = mWinchMaster.getPIDController();
   TalonSRX mBalance = new TalonSRX(Constants.kBalance);
+
+  Solenoid mClimberDeploy = new Solenoid(Constants.kClimberDeploy);
   Solenoid mWinchRatchet = new Solenoid(Constants.kWinchRatchet);
 
 
+
+
   public Climber(){
-    mWinchMaster.configFactoryDefault();
-    mWinchSlave.configFactoryDefault();
+    mWinchMaster.restoreFactoryDefaults();
     mBalance.configFactoryDefault();
 
-    mWinchSlave.set(ControlMode.Follower, Constants.kWinchMaster);
+    //set winchmaster pidf
+    mController.setP(Constants.kClimberP);
+    mController.setI(Constants.kClimberI);
+    mController.setD(Constants.kClimberD);
+    mController.setFF(Constants.kClimberF);
+    mController.setIZone(Constants.kClimberIz);
+    mController.setOutputRange(Constants.kMinOutput, Constants.kMaxOutput);
 
     mWinchMaster.setInverted(false);
-    mWinchSlave.setInverted(false);
     mBalance.setInverted(false);
 
-    mWinchMaster.setSensorPhase(false);
-    mWinchSlave.setSensorPhase(false);
-
     mWinchRatchet.set(false);
+    mClimberDeploy.set(false);
   }
 
   //winch is default engaged for power loss.
@@ -62,21 +74,33 @@ public class Climber extends Subsystem {
     mWinchRatchet.set(false);
     isWinchEngaged = true;
   }
+
+  boolean isClimberDeployed = false;
+  public void setClimberDeploy(boolean on){
+    mClimberDeploy.set(on);
+    isClimberDeployed = on;
+  }
+
+  public boolean getIsClimberDeployed(){
+    return isClimberDeployed;
+  }
   
   public boolean getIsWinchEngaged(){
     return isWinchEngaged;
   }
 
   public void setWinch(double value){
-    mWinchMaster.set(ControlMode.PercentOutput, value);
+    mController.setReference(value, ControlType.kDutyCycle);
   }
 
   public void setBalance(double value){
     mBalance.set(ControlMode.PercentOutput, value);
   }
 
+  public void outputToSmartDashboard(){
+    SmartDashboard.putNumber("Climber Current", mWinchMaster.getOutputCurrent());
 
-
+  }
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

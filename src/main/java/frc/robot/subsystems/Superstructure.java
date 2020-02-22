@@ -42,11 +42,21 @@ public class Superstructure extends Subsystem {
     DEPLOYED_CONTROL_PANEL,
     READY_TO_SHOOT,
     WAITING_FOR_FLYWHEEL,
-    SHOOTING,
+    // SHOOTING,
     CLIMB,
   }
   private SystemState mSystemState = SystemState.IDLE;
 
+  //Software States
+  private boolean wantShoot = false;
+  private boolean operatorTurretOverride = false;
+  private boolean wantSpinFlywheel = false;
+
+  //Shooter Values
+  private double STARTING_LINE = 2500;
+  private double TEST = 0;
+  
+  
 
   private static Superstructure mInstance = null; 
     public synchronized static Superstructure getInstance(){
@@ -60,6 +70,7 @@ public class Superstructure extends Subsystem {
     private final Loop mLoop = new Loop() {
         @Override
         public void onStart(double timestamp) {
+          
             synchronized (Superstructure.this) {
               mStateChanged = true;
             }
@@ -117,11 +128,13 @@ public class Superstructure extends Subsystem {
   private SystemState defaultStateTransfer(){
     switch(mWantedState){
       case SHOOT:
-        return SystemState.SHOOTING;
+        return SystemState.READY_TO_SHOOT;
       case DEPLOY_CONTROL_PANEL:
         return SystemState.DEPLOYED_CONTROL_PANEL;
       case INTAKE:
         return SystemState.INTAKING;
+      case WANT_CLIMB:
+        return SystemState.CLIMB;
       case IDLE:
         return SystemState.IDLE;
       default:
@@ -146,13 +159,13 @@ public class Superstructure extends Subsystem {
         mIntake.setOff();
         return SystemState.DEPLOYED_CONTROL_PANEL;
       case SHOOT:
-        if(mShooter.isReady){
+        // if(mShooter.isReady){
           mIntake.setOff();
           return SystemState.READY_TO_SHOOT;
-        }else{
-          mIntake.setOff();
-          return SystemState.WAITING_FOR_FLYWHEEL;
-        }
+        // }else{
+        //   mIntake.setOff();
+        //   return SystemState.WAITING_FOR_FLYWHEEL;
+        // }
       default:
         return SystemState.INTAKING;
     }
@@ -211,17 +224,27 @@ public class Superstructure extends Subsystem {
   LatchedBoolean shotEdge = new LatchedBoolean();
   private SystemState handleReadyToShoot(){
     //start targetting
-    if(!mTurret.getWantTarget()) mTurret.setTurretState(true);
+    if(!operatorTurretOverride){
+      mTurret.setTurretState(true);
+    }else{
+      mTurret.setTurretState(false);
+    }
+    
+    if(wantSpinFlywheel){
+      mShooter.setVelocity(TEST);
+    }else{
+      mShooter.setOpenLoop(0);
+    }
 
     if(wantShoot){
-      if(mShooter.isReady && mTurret.onTarget){
-        //use the indexer to push a ball up and fire
+      // if(mShooter.isReady && mTurret.onTarget){
+        // use the indexer to push a ball up and fire
         mIntake.startFeeding();
-        if(shotEdge.update(mShooter.shotBall)) mIntake.decreaseCellCount();
-      }else{
-        mIntake.setOff();
-        //wait on targeting or spin up.
-      }
+      //   if(shotEdge.update(mShooter.shotBall)) mIntake.decreaseCellCount();
+      // }else{
+      //   mIntake.setOff();
+      //   //wait on targeting or spin up.
+      // }
     }else{
       mIntake.setOff();
       //keep the flywheel spinning
@@ -229,25 +252,33 @@ public class Superstructure extends Subsystem {
 
     
     
-    if(mIntake.isEmpty()){//no more balls to shoot
-      mWantedState = WantedState.IDLE;
-    }
+    // if(mIntake.isEmpty()){//no more balls to shoot
+    //   mWantedState = WantedState.IDLE;
+    // }
 
     switch(mWantedState){
       case INTAKE:
+        mTurret.setTurretState(false);
+        mShooter.setOpenLoop(0);
+        mIntake.setOff();
+        mTurret.setOpenLoop(0);
         return SystemState.INTAKING;
       case SHOOT:
-        return SystemState.SHOOTING;
+        return SystemState.READY_TO_SHOOT;
       case IDLE:
+        mTurret.setTurretState(false);
+        mShooter.setOpenLoop(0);
+        mTurret.setOpenLoop(0);
         return SystemState.IDLE;
       default:
-        return SystemState.SHOOTING;
+        return SystemState.READY_TO_SHOOT;
     }
   }
 
   private SystemState handleClimb(){
     if(mStateChanged){
-      mClimber.releaseWinch();
+      // mClimber.releaseWinch();
+      mClimber.setClimberDeploy(true);
       //TODO code the deployment of climber :)
     }
 
@@ -255,19 +286,45 @@ public class Superstructure extends Subsystem {
       case WANT_CLIMB:
         return SystemState.CLIMB;
       case INTAKE:
+        mClimber.setClimberDeploy(false);
         return SystemState.INTAKING;
-      case SHOOT:
-        return SystemState.SHOOTING;
       default:
         return SystemState.CLIMB;
     }
   }
 
-  private boolean wantShoot = false;
   public void shoot(boolean yes){
     if(yes) wantShoot = true;
     else wantShoot = false;
   }
+
+  public boolean getOperatorTurretOverride(){
+    return operatorTurretOverride;
+  }
+  public void setTurretOverride(boolean want){
+    operatorTurretOverride = want;
+  }
+  public void toggleTurretOverride(){
+    if(operatorTurretOverride) operatorTurretOverride = false;
+    else operatorTurretOverride = true;
+  }
+
+  public boolean getWantSpinFlywheel(){
+    return wantSpinFlywheel;
+  }
+  public void spinFlywheel(){
+    wantSpinFlywheel = true;
+  }
+  public void stopFlywheel(){
+    wantSpinFlywheel = false;
+  }
+  // public void toggleManualGate(){
+  //   if(mIntake.getIsGateOn()){
+  //     mIntake.gateOff();
+  //   }else{
+  //     mIntake.gateOn();
+  //   }
+  // }
 
   public void wantRotationControl(){
     mControlPanel.doRotation();
@@ -292,7 +349,10 @@ public class Superstructure extends Subsystem {
   }
 
   public void outputToSmartDashboard(){
-    SmartDashboard.putString("Superstructure State", getSubsystem().toString());
+    SmartDashboard.putString("Superstructure State", mSystemState.toString());
+    SmartDashboard.putString("Wanted State", mWantedState.toString());
+    SmartDashboard.putBoolean("Turret Override", operatorTurretOverride);
+    TEST = SmartDashboard.getNumber("Shooter RPM", 2500);
   }
 
   @Override

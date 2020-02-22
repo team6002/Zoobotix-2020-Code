@@ -7,20 +7,22 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.command.Command;
-import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.ControlBoard;
-import frc.robot.subsystems.*;
+import frc.robot.loops.Looper;
+import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SystemState;
 import frc.robot.subsystems.Superstructure.WantedState;
-import frc.robot.subsystems.Turret.Hint;
-import frc.robot.loops.*;
+
+import frc.robot.subsystems.*;
+import frc.robot.auto.AutoContainer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,23 +32,30 @@ import frc.robot.loops.*;
  * project.
  */
 public class Robot extends TimedRobot {
-  public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
-  public static OI m_oi;
   public static Superstructure mSuperstructure = Superstructure.getInstance();
   public static Drive mDrive = Drive.getInstance();
+  public static Intake mIntake = Intake.getInstance();
   public static Shooter mShooter = Shooter.getInstance();
   public static Turret mTurret = Turret.getInstance();
-  public static ControlPanel mControlPanel = ControlPanel.getInstance();
+  // public static ControlPanel mControlPanel = ControlPanel.getInstance();
   public static ControlBoard mControlBoard = ControlBoard.getInstance();
   public static Climber mClimber = Climber.getInstance();
 
-  private Looper mEnabledLooper = new Looper();
+  Compressor c;
+  
 
+  NetworkTableInstance inst = NetworkTableInstance.getDefault();
+  NetworkTable mTable = inst.getTable("SmartDashboard");
+
+  AutoContainer mAutoContainer = new AutoContainer();
+
+  private Looper mEnabledLooper = new Looper();
+  
+  
   String gameData;
 
 
-  Command m_autonomousCommand;
-  SendableChooser<Command> m_chooser = new SendableChooser<>();
+  Command mAutonomousCommand;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -54,20 +63,21 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    
     mSuperstructure.registerEnabledLoops(mEnabledLooper);
-    mDrive.registerEnabledLoops(mEnabledLooper);
+    // mDrive.registerEnabledLoops(mEnabledLooper);
+    mIntake.registerEnabledLoops(mEnabledLooper);
     mShooter.registerEnabledLoops(mEnabledLooper);
     mTurret.registerEnabledLoops(mEnabledLooper);
 
-    //initialize networktables
-    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    c = new Compressor(0);
+    c.setClosedLoopControl(true);
+    
+    //TODO remove shooter testing function
+    SmartDashboard.putNumber("Shooter RPM", 2500);
 
-
-    m_oi = new OI();
-    m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
-    // chooser.addOption("My Auto", new MyAutoCommand());
-    SmartDashboard.putData("Auto mode", m_chooser);
+    mDrive.outputToSmartDashboard();
+    updateTelemetry();
+    
   }
 
   /**
@@ -80,6 +90,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    //for running autonomous container
+    CommandScheduler.getInstance().run();
+
     gameData = DriverStation.getInstance().getGameSpecificMessage();
     if(gameData.length() > 0){
       SmartDashboard.putString("Color For Position", gameData);
@@ -101,7 +114,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    Scheduler.getInstance().run();
   }
 
   /**
@@ -117,7 +129,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_chooser.getSelected();
+    mDrive.resetOdometry();
+    mAutonomousCommand = mAutoContainer.getAutonomousCommand();
+
 
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -127,8 +141,8 @@ public class Robot extends TimedRobot {
      */
 
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.start();
+    if (mAutonomousCommand != null) {
+      mAutonomousCommand.schedule();
     }
 
     mEnabledLooper.start();
@@ -139,7 +153,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    Scheduler.getInstance().run();
+    mDrive.outputToSmartDashboard();
   }
 
   @Override
@@ -148,8 +162,8 @@ public class Robot extends TimedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
+    if (mAutonomousCommand != null) {
+      mAutonomousCommand.cancel();
     }
 
     mEnabledLooper.start();
@@ -158,37 +172,70 @@ public class Robot extends TimedRobot {
   /**
    * This function is called periodically during operator control.
    */
+  //software toggles
+  boolean intakeToggle = false;
+  boolean isReverseControl = false;
   @Override
   public void teleopPeriodic() {
-    Scheduler.getInstance().run();
+    if(mControlBoard.getClimb()){
+      mSuperstructure.setWantedState(WantedState.WANT_CLIMB);
+    }
 
+    SmartDashboard.putNumber("throttle", mControlBoard.getThrottle());
+    double throttle = mControlBoard.getThrottle();
+    double turn = mControlBoard.getTurn();
 
-    mDrive.arcadeDrive(mControlBoard.getThrottle(), mControlBoard.getTurn());
+    if(mControlBoard.getShift()){
+      if(mDrive.isHighGear()){
+        mDrive.shift(false);
+      }else{
+        mDrive.shift(true);
+      }
+    }
+    
+    if(mControlBoard.getSlowMode()){
+      throttle = throttle * 0.65;
+      turn = turn * 0.65;
+    }
+
+    if(mControlBoard.getReverse()){
+      if (isReverseControl){
+        isReverseControl = false;
+      }
+      else{
+        isReverseControl = true;
+      }
+    }
+
+    if(isReverseControl == true){
+      throttle = throttle  * -1;
+      turn = turn ;
+    }
+
+    mDrive.arcadeDrive(throttle, turn);
     
     if(mControlBoard.getIntakeButton()){
-      mSuperstructure.setWantedState(WantedState.INTAKE);
+      if(mSuperstructure.getSystemState() != SystemState.INTAKING){
+        mSuperstructure.setWantedState(WantedState.INTAKE);
+      }else{
+        mSuperstructure.setWantedState(WantedState.IDLE);
+      }
     }
+    
     if(mControlBoard.getReadyShooter()){
       mSuperstructure.setWantedState(WantedState.SHOOT);
     }
 
-    if(mControlBoard.getHintLeft()){
-      mSuperstructure.setTurretHint(Hint.LEFT);
+    if(mControlBoard.getOperatorToggleTurretOverride()){
+      mSuperstructure.toggleTurretOverride();
     }
-    if(mControlBoard.getHintRight()){
-      mSuperstructure.setTurretHint(Hint.RIGHT);
-    }
-    if(mControlBoard.getOperatorControlPanel()){
-      mSuperstructure.setWantedState(WantedState.DEPLOY_CONTROL_PANEL);
-    }
-    
-    if(mSuperstructure.getSystemState() == SystemState.DEPLOYED_CONTROL_PANEL){
-      if(mControlBoard.getControlPanelSpin()){
-        mSuperstructure.wantRotationControl();
-      }else if(mControlBoard.getControlPanelLeft()){
-        mControlPanel.setOpenLoop(-0.1);
-      }else if(mControlBoard.getControlPanelRight()){
-        mControlPanel.setOpenLoop(0.1);
+
+
+    if(mSuperstructure.getSystemState() == SystemState.INTAKING){
+      if(mControlBoard.getManualGate()){
+        mIntake.gateOn();
+      }else{
+        mIntake.gateOff();
       }
     }
 
@@ -198,22 +245,82 @@ public class Robot extends TimedRobot {
       }else{
         mSuperstructure.shoot(false);
       }
+
+      if(mControlBoard.getSpinFlywheel()){
+        if(mSuperstructure.getWantSpinFlywheel()){
+          mSuperstructure.stopFlywheel();
+        }else{
+          mSuperstructure.spinFlywheel();
+        }
+      }
+
+      if(mSuperstructure.getOperatorTurretOverride()){
+        mTurret.setOpenLoop(mControlBoard.getOperatorTurretControl());
+      }
     }else {
+      mSuperstructure.stopFlywheel();
       mSuperstructure.shoot(false);
     }
 
-    if(mControlBoard.getClimb()){
-      mSuperstructure.setWantedState(WantedState.WANT_CLIMB);
-    }
+    
+
+    
 
     if(mSuperstructure.getSystemState() == SystemState.CLIMB){
       mClimber.setWinch(mControlBoard.getClimbStick());
-      mClimber.setBalance(mControlBoard.getBalanceStick());
+      // mClimber.setBalance(mControlBoard.getBalanceStick());
     }
     
 
+      //   if(mControlBoard.getHintLeft()){
+  //     mSuperstructure.setTurretHint(Hint.LEFT);
+  //   }
+  //   if(mControlBoard.getHintRight()){
+  //     mSuperstructure.setTurretHint(Hint.RIGHT);
+  //   }
+  //   if(mControlBoard.getOperatorControlPanel()){
+  //     mSuperstructure.setWantedState(WantedState.DEPLOY_CONTROL_PANEL);
+  //   }
+    
+  //   if(mSuperstructure.getSystemState() == SystemState.DEPLOYED_CONTROL_PANEL){
+  //     if(mControlBoard.getControlPanelSpin()){
+  //       mSuperstructure.wantRotationControl();
+  //     }else if(mControlBoard.getControlPanelLeft()){
+  //       mControlPanel.setOpenLoop(-0.1);
+  //     }else if(mControlBoard.getControlPanelRight()){
+  //       mControlPanel.setOpenLoop(0.1);
+  //     }
+  //   }
+    
+    updateTelemetry();
+  }
 
+  public void updateTelemetry(){
+    SmartDashboard.putBoolean( "reverse button", isReverseControl);
+    mSuperstructure.outputToSmartDashboard();
+    mDrive.outputToSmartDashboard();
+    mClimber.outputToSmartDashboard();
     mShooter.outputToSmartDashboard();
+    mTurret.outputToSmartdashboard();
+    mIntake.outputToSmartDashboard();
+
+    boolean enabled = c.enabled();
+    boolean pressureSwitch = c.getPressureSwitchValue();
+    double current = c.getCompressorCurrent();
+    SmartDashboard.putBoolean("Compressor", enabled);
+    SmartDashboard.putBoolean("Pressure Switch", pressureSwitch);
+    SmartDashboard.putNumber("Compressor Current", current);
+    SmartDashboard.putNumber("estimated distance", distanceFromTarget(mTable.getEntry("width").getDouble(-1)));
+    // SmartDashboard.putNumber("top", mTable.getEntry("h").getDouble(-1));
+  }
+  
+  public double distanceFromTarget(double x){
+    if(x == -1) return -1;
+    return 82.6 - 2.44*x + 0.03*Math.pow(x, 2) -1.36e-4*Math.pow(x, 3);
+  }
+
+  public double calculateTop(double cY, double h){
+    return cY + h/2;
   }
 
   /**

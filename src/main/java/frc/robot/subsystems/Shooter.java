@@ -39,8 +39,8 @@ public class Shooter extends Subsystem {
   CANSparkMax mShooterSlave = new CANSparkMax(Constants.kShooterSlave, MotorType.kBrushless);
 
   //encoder
-  CANEncoder mShooterEncoder = mShooterMaster.getEncoder();
-  CANEncoder mShooterSlaveEncoder = mShooterSlave.getEncoder();
+  CANEncoder mEncoder = mShooterMaster.getEncoder();
+  CANEncoder mSlaveEncoder = mShooterSlave.getEncoder();
 
   //pid controller
   CANPIDController mController = mShooterMaster.getPIDController();
@@ -57,8 +57,13 @@ public class Shooter extends Subsystem {
     mShooterMaster.restoreFactoryDefaults();
     mShooterSlave.restoreFactoryDefaults();
 
-    // mShooterSlave.follow(mShooterMaster, true);
     mShooterSlave.follow(mShooterMaster, true);
+
+    mShooterMaster.setInverted(true);
+    
+    
+    mShooterMaster.setIdleMode(IdleMode.kCoast);
+    mShooterSlave.setIdleMode(IdleMode.kCoast);
 
     //set up pid configs for the pid controller
     mController.setP(Constants.kShooterP);
@@ -70,12 +75,8 @@ public class Shooter extends Subsystem {
     mController.setSmartMotionMaxAccel(Constants.kShooterMaxAccel, 0);
     mController.setSmartMotionMaxVelocity(Constants.kShooterMaxVel, 0);
 
-    mShooterMaster.setInverted(false);
-    // mShooterSlave.setInverted(false);
-    mShooterMaster.setIdleMode(IdleMode.kCoast);
-    mShooterSlave.setIdleMode(IdleMode.kCoast);
-
-    mShooterEncoder.setPosition(0);
+    //reset encoder
+    mEncoder.setPosition(0);
   }
 
   private enum ControlState {
@@ -99,6 +100,7 @@ public class Shooter extends Subsystem {
             synchronized (Shooter.this) {
                 switch(mControlState){
                   case OPEN_LOOP:
+                    shotBall = false;
                     break;
                   case VELOCITY:
                     if(Util.epsilonEquals(getVelocity(), setpoint, 150)){
@@ -108,7 +110,7 @@ public class Shooter extends Subsystem {
                     }
 
                     //check if a ball was shot by seeing drops in velocity.
-                    if(Math.abs(setpoint - getVelocity()) < 150){
+                    if(Math.abs(setpoint - getVelocity()) > 150){
                       shotBall = true;
                     }else{
                       shotBall = false;
@@ -127,7 +129,6 @@ public class Shooter extends Subsystem {
         }
     });
   }
-
 
   public void setOpenLoop(double value){
     if(mControlState != ControlState.OPEN_LOOP){
@@ -171,14 +172,16 @@ public class Shooter extends Subsystem {
   }
 
   public synchronized double getVelocity(){
-    return mShooterEncoder.getVelocity();
+    return mEncoder.getVelocity();
   }
 
   public void outputToSmartDashboard(){
+    SmartDashboard.putBoolean("Shot Ball?", shotBall);
+    SmartDashboard.putBoolean("Shooter Ready", isReady);
     SmartDashboard.putNumber("Shooter Velocity", getVelocity());
-    SmartDashboard.putNumber("Master Shooter Value", mShooterMaster.getOutputCurrent());
-    SmartDashboard.putNumber("Slave Shooter Value", mShooterSlave.getOutputCurrent());
-    SmartDashboard.putString("Shooter C.State", mControlState.toString());
+    SmartDashboard.putNumber("Shooter Master Current", mShooterMaster.getOutputCurrent());
+    SmartDashboard.putNumber("Shooter Slave Current", mShooterSlave.getOutputCurrent());
+    // SmartDashboard.putString("Shooter C.State", mControlState.toString());
   }
 
   public synchronized void stop(){

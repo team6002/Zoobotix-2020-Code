@@ -33,39 +33,49 @@ public class ControlBoard {
     private LatchedBoolean yEdge = new LatchedBoolean();
 
     public double getThrottle(){
-        return xbox.getY(Hand.kLeft);
+        if(Math.abs(xbox.getY(Hand.kLeft)) > 0.10){
+            return -xbox.getY(Hand.kLeft);
+        }else{
+            return 0;
+        }
+        
     }
 
     public double getTurn(){
-        return xbox.getX(Hand.kRight);
+        if(Math.abs(xbox.getX(Hand.kRight)) > 0.10){
+            return xbox.getX(Hand.kRight);
+        }else{
+            return 0;
+        }
     }
-
-    public boolean getA(){
-        return xbox.getAButton();
-    }
-    public boolean getB(){
-        return xbox.getBButton();
-    }
-    public boolean getX(){
-        return xbox.getXButtonPressed();
-    }
-    public boolean getY(){
-        return xbox.getYButtonPressed();
+    LatchedBoolean reverseEdge = new LatchedBoolean();
+    public boolean getReverse(){
+        return reverseEdge.update(xbox.getXButton());
     }
     public boolean getReadyShooter(){
         return xbox.getBumper(Hand.kRight);
     }
+    LatchedBoolean driverIntake = new LatchedBoolean();
     public boolean getIntakeButton(){
-        return xbox.getBumper(Hand.kLeft);
+        return driverIntake.update(xbox.getBumper(Hand.kLeft));
     }
-    public boolean getShiftUp(){
-        return xbox.getTriggerAxis(Hand.kRight) > 0.3;
+    LatchedBoolean spinEdge = new LatchedBoolean();
+    public boolean getSpinFlywheel(){
+        return spinEdge.update(xbox.getYButton());
     }
-    public boolean getShiftDown(){
-        return xbox.getTriggerAxis(Hand.kLeft) > 0.3;
+    // LatchedBoolean gateEdge = new LatchedBoolean();
+    public boolean getManualGate(){
+        return xbox.getAButton();
+    }
+    LatchedBoolean shiftEdge = new LatchedBoolean();
+    public boolean getShift(){
+        return shiftEdge.update(xbox.getTriggerAxis(Hand.kRight) > 0.3);
     }
     public boolean getShootButton(){
         return xbox.getBButton();
+    }
+    public boolean getSlowMode(){
+        return xbox.getTriggerAxis(Hand.kRight) > 0.3;
     }
 
     //operator controls
@@ -74,6 +84,13 @@ public class ControlBoard {
     }
     public boolean getOperatorShoot(){
         return operator.getBButton();
+    }
+    public double getOperatorTurretControl(){//mapped to 35%
+        return -operator.getX(Hand.kRight)*0.35;
+    }
+    LatchedBoolean overrideEdge = new LatchedBoolean();
+    public boolean getOperatorToggleTurretOverride(){
+        return overrideEdge.update(operator.getYButton());
     }
     public boolean getOperatorIntake(){
         return operator.getBumper(Hand.kLeft);
@@ -88,8 +105,9 @@ public class ControlBoard {
     public boolean getOperatorControlPanel(){
         return controlPanelEdge.update(operator.getYButton());
     }
+    LatchedBoolean climbEdge = new LatchedBoolean();
     public boolean getClimb(){
-        return operator.getStartButton();
+        return climbEdge.update(operator.getStartButton());
     }
     public double getClimbStick(){
         return -operator.getY(Hand.kLeft);

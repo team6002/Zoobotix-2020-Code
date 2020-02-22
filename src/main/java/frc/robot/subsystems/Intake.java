@@ -7,6 +7,9 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
@@ -34,13 +37,11 @@ public class Intake extends Subsystem {
     return mInstance;
   }
 
-  //motors
+  //motors  
   CANSparkMax mTopIntake = new CANSparkMax(Constants.kTopIntake, MotorType.kBrushless);
   CANSparkMax mGateIntake = new CANSparkMax(Constants.kGateIntake, MotorType.kBrushless);
   CANSparkMax mBotIntake = new CANSparkMax(Constants.kBotIntake, MotorType.kBrushless);
-  CANSparkMax mDeployIntake = new CANSparkMax(Constants.kDeployIntake, MotorType.kBrushless);
-
-
+  VictorSPX mDeployIntake = new VictorSPX(Constants.kDeployIntake);
 
   //solenoids to deploy intake out
   Solenoid mOutDeploy = new Solenoid(Constants.kIntakeOut);
@@ -53,10 +54,10 @@ public class Intake extends Subsystem {
   CANEncoder mEncoderA = mTopIntake.getEncoder();
   CANEncoder mEncoderB = mGateIntake.getEncoder();
   CANEncoder mEncoderC = mBotIntake.getEncoder();
-  CANEncoder mEncoderD = mDeployIntake.getEncoder();
 
   //software states
   boolean isIntakeOn = false;
+  boolean isGateOn = false;
   boolean isIntakeDeployed = false;
   boolean isIndexerFull = false;
 
@@ -66,30 +67,30 @@ public class Intake extends Subsystem {
   //speed values
   //intaking balls
   double DEPLOYINTAKE_ON = 0;
-  double TOPINTAKE_ON = 0;
-  double BOTINTAKE_ON = 0;
-  double GATE_IN = 0;
+  double TOPINTAKE_ON = 0.3;
+  double BOTINTAKE_ON = 0.3;
+  double GATE_IN = -0.70;
 
   //feed into the shooter
-  double GATE_FEED = 0;
-  double TOPINTAKE_FEED = 0;   
-  double BOTINTAKE_FEED = 0;                                                                                                                                                                                                                        
+  double GATE_FEED = 0.3;
+  double TOPINTAKE_FEED = 0.6;   
+  double BOTINTAKE_FEED = -0.6;                                                                                                                                                                                                                        
 
   public Intake(){
     mTopIntake.restoreFactoryDefaults();
     mBotIntake.restoreFactoryDefaults();
     mGateIntake.restoreFactoryDefaults();
-    mDeployIntake.restoreFactoryDefaults();
+    mDeployIntake.configFactoryDefault();
 
-    mTopIntake.setInverted(false);
-    mBotIntake.setInverted(false);
+    mTopIntake.setInverted(true);
+    mBotIntake.setInverted(true);
     mGateIntake.setInverted(false);
     mDeployIntake.setInverted(false);
 
     mTopIntake.setIdleMode(IdleMode.kBrake);
     mBotIntake.setIdleMode(IdleMode.kBrake);
     mGateIntake.setIdleMode(IdleMode.kBrake);
-    mDeployIntake.setIdleMode(IdleMode.kBrake);
+    mDeployIntake.setNeutralMode(NeutralMode.Brake);
 
     mOutDeploy.set(false);
     mDownDeploy.set(false);
@@ -98,7 +99,7 @@ public class Intake extends Subsystem {
     mEncoderA.setPosition(0);
     mEncoderB.setPosition(0);
     mEncoderC.setPosition(0);
-    mEncoderD.setPosition(0);
+    
   }
 
   private enum IntakeState{
@@ -124,19 +125,23 @@ public class Intake extends Subsystem {
             synchronized (Intake.this) {
                 switch(mIntakeState){
                   case OFF:
+                    stop();
                     break;
                   case INTAKING:
-                    //if switch, turn on the gate and store power cell
-                    boolean detected = cellEdge.update(mCellSensor.get());
-                    if(detected && cellCount == 4){
-                      setOff();//store the fifth ball inside of the indexer mechanism.
-                    }else if(detected){
-                      mGateIntake.set(GATE_IN);
+                    // if switch, turn on the gate and store power cell
+                    boolean detected = !mCellSensor.get();
+                    // if(detected && cellCount == 4){
+                    //   setOff();//store the fifth ball inside of the indexer mechanism.
+                    // }else 
+                    if(detected){
+                      gateOn();
+                      mTopIntake.set(0);
                     }else{
-                      mGateIntake.set(0);
+                      mTopIntake.set(TOPINTAKE_ON);
+                      gateOff();
                     }
 
-                    if(detected){
+                    if(cellEdge.update(detected)){
                       cellCount++;
                     }
 
@@ -168,10 +173,24 @@ public class Intake extends Subsystem {
     deployIntake();
 
     //gate is taken care of in loop
-    mDeployIntake.set(DEPLOYINTAKE_ON);
-    mTopIntake.set(TOPINTAKE_ON);
-    mBotIntake.set(BOTINTAKE_ON);
+    mDeployIntake.set(ControlMode.PercentOutput, DEPLOYINTAKE_ON);
     
+    mBotIntake.set(BOTINTAKE_ON);
+    if(isGateOn){
+      mTopIntake.set(0);
+    }else{
+      mTopIntake.set(TOPINTAKE_ON);
+    }
+    
+  }
+
+  public void gateOn(){
+    isGateOn = true;
+    mGateIntake.set(GATE_IN);
+  }
+  public void gateOff(){
+    isGateOn = false;
+    mGateIntake.set(0);
   }
 
   public void startFeeding(){
@@ -198,10 +217,10 @@ public class Intake extends Subsystem {
 
   public void setIntake(boolean pIntakeOn){
     if(pIntakeOn){
-      mDeployIntake.set(DEPLOYINTAKE_ON);
+      mDeployIntake.set(ControlMode.PercentOutput, DEPLOYINTAKE_ON);
       isIntakeOn = true;
     }else{
-      mDeployIntake.set(0);
+      mDeployIntake.set(ControlMode.PercentOutput, 0);
       isIntakeOn = false;
     }
   }
@@ -211,11 +230,12 @@ public class Intake extends Subsystem {
     if(mIntakeState != IntakeState.OFF){
       mIntakeState = IntakeState.OFF;
     }
-
+    isGateOn = false;
+    isIntakeOn = false;
     mTopIntake.set(0);
     mBotIntake.set(0);
     mGateIntake.set(0);
-    mDeployIntake.set(0);
+    mDeployIntake.set(ControlMode.PercentOutput, 0);
   }
 
   //if shooter detects a velocity drop, that means a power cell was shot.
@@ -236,6 +256,9 @@ public class Intake extends Subsystem {
     return mCellSensor.get();
   }
 
+  public boolean getIsGateOn(){
+    return isGateOn;
+  }
   public synchronized void stop(){
     setOff();
   }
@@ -243,6 +266,7 @@ public class Intake extends Subsystem {
   public void outputToSmartDashboard(){
     SmartDashboard.putString("Intake State", mIntakeState.toString());
     SmartDashboard.putNumber("Power Cells Stored", cellCount);
+    SmartDashboard.putBoolean("Cell Sensor", mCellSensor.get());
   }
 
   @Override
