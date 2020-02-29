@@ -146,14 +146,13 @@ public class Intake extends Subsystem {
         public void onLoop(double timestamp) {
             synchronized (Intake.this) {
 
-
+              boolean detected = mCellSensor.get();
+              boolean isFull = mFullSensor.get();
                 switch(mIntakeState){
                   case OFF:
                     stop();
                     break;
                   case INTAKING:
-                    boolean detected = mCellSensor.get();
-                    boolean isFull = mFullSensor.get();
                     switch(mIndexerState){
                       case EMPTY:
                         if(detected){
@@ -215,6 +214,9 @@ public class Intake extends Subsystem {
 
                     break;
                   case FEEDING_SHOOTER:
+                    if(cellEdge.update(detected)){
+                    cellCount--;
+                    }
                     //if shooter is up to speed, set the gate to feed power cells in.
                     break;
                   default:
