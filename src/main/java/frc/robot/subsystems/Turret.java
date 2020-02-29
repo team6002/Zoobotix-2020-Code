@@ -29,7 +29,7 @@ import frc.robot.loops.*;
 import frc.lib.util.Util;
 
 /**
- * The part that the shooter sits on top of and spins.
+ * The part that the shooter sits on top of robot and spins.
  */
 public class Turret extends Subsystem {
   private static Turret mInstance;

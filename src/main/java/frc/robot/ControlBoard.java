@@ -48,6 +48,15 @@ public class ControlBoard {
             return 0;
         }
     }
+    public boolean getEjectIntake(){
+        return xbox.getBackButton();
+    }
+    public boolean getReleaseWinch(){
+        return xbox.getPOV() == 0;
+    }
+    public boolean getEnageWinch(){
+        return xbox.getPOV() == 180;
+    }
     LatchedBoolean reverseEdge = new LatchedBoolean();
     public boolean getReverse(){
         return reverseEdge.update(xbox.getXButton());
@@ -78,12 +87,16 @@ public class ControlBoard {
         return xbox.getTriggerAxis(Hand.kRight) > 0.3;
     }
 
-    //operator controls
+    //OPERATOR CONTROLS
     public boolean getOperatorReadyShooter(){
         return operator.getBumper(Hand.kRight);
     }
     public boolean getOperatorShoot(){
         return operator.getBButton();
+    }
+    LatchedBoolean disableEdge = new LatchedBoolean();
+    public boolean getOperatorToggleClimbPiston(){
+        return disableEdge.update(operator.getXButton());
     }
     public double getOperatorTurretControl(){//mapped to 35%
         return -operator.getX(Hand.kRight)*0.35;

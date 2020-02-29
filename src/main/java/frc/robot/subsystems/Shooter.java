@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.util.Util;
 import frc.robot.Constants;
 import frc.robot.loops.*;
@@ -24,7 +25,7 @@ import frc.robot.loops.*;
 /**
  * Subsystem for the hood shooter of lemons
  */
-public class Shooter extends Subsystem {
+public class Shooter extends SubsystemBase {
   private static Shooter mInstance;
 
   public static Shooter getInstance(){
@@ -189,8 +190,6 @@ public class Shooter extends Subsystem {
   }
 
   @Override
-  public void initDefaultCommand() {
-    // Set the default command for a subsystem here.
-    // setDefaultCommand(new MySpecialCommand());
+  public void periodic() {
   }
 }

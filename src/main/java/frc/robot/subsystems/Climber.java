@@ -99,6 +99,8 @@ public class Climber extends Subsystem {
 
   public void outputToSmartDashboard(){
     SmartDashboard.putNumber("Climber Current", mWinchMaster.getOutputCurrent());
+    SmartDashboard.putNumber("Climber Volts", mWinchMaster.getBusVoltage());
+    SmartDashboard.putNumber("Climber Given Volts", mWinchMaster.get());
 
   }
   @Override

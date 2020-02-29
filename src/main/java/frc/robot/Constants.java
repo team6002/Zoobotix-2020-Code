@@ -96,13 +96,16 @@ public class Constants{
     public final static int kIntakeOut = 1;
     public final static int kIntakeDown = 5;
 
+    //Indexer/Intake sensors
     public final static int kCellSensor = 0;
+    public final static int kEmptySensor = 1;
+    public final static int kFullSensor = 2;
 
     //Climber Ports
     public final static int kWinchMaster = 6;
     public final static int kBalance = 12;
     //solenoids
-    public final static int kWinchRatchet = 6;
+    public final static int kWinchRatchet = 0;
     public final static int kClimberDeploy = 2;//change
 
     //climber pid constants

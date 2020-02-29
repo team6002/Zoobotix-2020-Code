@@ -277,9 +277,14 @@ public class Superstructure extends Subsystem {
 
   private SystemState handleClimb(){
     if(mStateChanged){
-      // mClimber.releaseWinch();
+      mClimber.releaseWinch();
       mClimber.setClimberDeploy(true);
-      //TODO code the deployment of climber :)
+    }
+
+    if(wantDisablePiston){
+      mClimber.setClimberDeploy(false);
+    }else{
+      mClimber.setClimberDeploy(true);
     }
 
     switch(mWantedState){
@@ -291,6 +296,11 @@ public class Superstructure extends Subsystem {
       default:
         return SystemState.CLIMB;
     }
+  }
+  private boolean wantDisablePiston = false;
+  public void toggleClimbPiston(){
+    wantDisablePiston = !wantDisablePiston;
+    
   }
 
   public void shoot(boolean yes){

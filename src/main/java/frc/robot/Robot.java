@@ -73,7 +73,7 @@ public class Robot extends TimedRobot {
     c.setClosedLoopControl(true);
     
     //TODO remove shooter testing function
-    SmartDashboard.putNumber("Shooter RPM", 2500);
+    SmartDashboard.putNumber("Shooter RPM", 2300);
 
     mDrive.outputToSmartDashboard();
     updateTelemetry();
@@ -215,9 +215,13 @@ public class Robot extends TimedRobot {
     mDrive.arcadeDrive(throttle, turn);
     
     if(mControlBoard.getIntakeButton()){
-      if(mSuperstructure.getSystemState() != SystemState.INTAKING){
+      if(mSuperstructure.getSystemState() == SystemState.READY_TO_SHOOT){
+        mSuperstructure.setWantedState(WantedState.IDLE);
+      }
+      else if(mSuperstructure.getSystemState() != SystemState.INTAKING){
         mSuperstructure.setWantedState(WantedState.INTAKE);
-      }else{
+      }
+      else{
         mSuperstructure.setWantedState(WantedState.IDLE);
       }
     }
@@ -262,13 +266,26 @@ public class Robot extends TimedRobot {
       mSuperstructure.shoot(false);
     }
 
-    
-
-    
+    // if(mControlBoard.getReleaseWinch()){
+    //   mClimber.releaseWinch();
+    // }
+    // if(mControlBoard.getEnageWinch()){
+    //   mClimber.engageWinch();
+    // }
 
     if(mSuperstructure.getSystemState() == SystemState.CLIMB){
-      mClimber.setWinch(mControlBoard.getClimbStick());
+      mClimber.setWinch(mControlBoard.getClimbStick() / 2);
       // mClimber.setBalance(mControlBoard.getBalanceStick());
+      if(mControlBoard.getOperatorToggleClimbPiston()){
+        mSuperstructure.toggleClimbPiston();
+      }
+    }
+    if(mSuperstructure.getSystemState() == SystemState.IDLE){
+      if(mControlBoard.getEjectIntake()){
+        mIntake.eject();
+      }else{
+        mIntake.setOff();
+      }
     }
     
 
