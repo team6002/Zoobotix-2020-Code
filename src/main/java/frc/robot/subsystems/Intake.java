@@ -68,7 +68,7 @@ public class Intake extends Subsystem {
   boolean flag = false;
 
   double startTime = 0;
-  int cellCount = 0;
+  int cellCount = 3; //we start with 3 in autonomous
   LatchedBoolean cellEdge = new LatchedBoolean();
   
   //speed values

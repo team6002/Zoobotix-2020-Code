@@ -14,7 +14,7 @@ import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Superstructure.WantedState;
 
-public class Shoot extends CommandBase {
+public class ShootCommand extends CommandBase {
   /**
    * This program is dedicated to shooting the balls in auto
    */
@@ -22,7 +22,7 @@ public class Shoot extends CommandBase {
   Intake mIntake;
   Superstructure mSuperstructure;
   Turret mTurret;
-  public Shoot() {
+  public ShootCommand() {
     // Use addRequirements() here to declare subsystem dependencies.
     mShooter = Shooter.getInstance();
   }

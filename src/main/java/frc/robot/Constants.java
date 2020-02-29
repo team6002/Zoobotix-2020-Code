@@ -1,7 +1,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.trajectory.constraint.CentripetalAccelerationConstraint;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import frc.robot.subsystems.Drive;
 
 //file to hold constants used around the robot.
 
@@ -118,5 +122,11 @@ public class Constants{
     // control panel port
     public final static int kControlPanel = 11;
     public final static int kControlPanelSolenoid = 7;
+
+    //Ramsete Controller configs and stuff
+    
+      
+
+    
 
 }

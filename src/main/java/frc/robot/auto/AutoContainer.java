@@ -54,10 +54,6 @@ public class AutoContainer {
         config.addConstraint(autoVoltageConstraint);
 
         Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-            // List.of(new Pose2d(0, 0, new Rotation2d(0)),
-            //     new Pose2d(1,0, new Rotation2d(0))
-            // ),
-            // Start at the origin facing the +X direction
             new Pose2d(0, 0, new Rotation2d(0)),
             // Pass through these two interior waypoints, making an 's' curve path
             List.of(
@@ -93,8 +89,8 @@ public class AutoContainer {
             mDrive.getFeedforward(),
             mDrive.getKinematics(),
             mDrive::getWheelSpeeds,
-            leftController, //new PIDController(Constants.kDrivePVel, 0, Constants.kDriveDVel),
-            rightController, //new PIDController(Constants.kDrivePVel, 0, Constants.kDriveDVel),
+            leftController, 
+            rightController,
             // RamseteCommand passes volts to the callback
             (leftVolts, rightVolts) -> {
                 mDrive.tankDriveVolts(leftVolts, rightVolts);
