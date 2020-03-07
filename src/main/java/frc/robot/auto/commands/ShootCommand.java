@@ -5,44 +5,60 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.robot.commands;
+package frc.robot.auto.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Superstructure;
+import frc.robot.subsystems.Turret;
+import frc.robot.subsystems.Superstructure.WantedState;
 
-public class RevFlywheel extends CommandBase {
+public class ShootCommand extends CommandBase {
   /**
-   * Starts to rev up the flywheel to a given rpm
+   * This program is dedicated to shooting the balls in auto
    */
   Shooter mShooter;
-  double setpoint = 0;
-  public RevFlywheel(double speed) {
+  Intake mIntake;
+  Superstructure mSuperstructure;
+  Turret mTurret;
+  boolean flag = false;
+  public ShootCommand() {
+    // Use addRequirements() here to declare subsystem dependencies.
     mShooter = Shooter.getInstance();
-    setpoint = speed;
+    mSuperstructure = Superstructure.getInstance();
+    mTurret = Turret.getInstance();
+    mIntake = Intake.getInstance();
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    mShooter.setVelocity(setpoint);
+    mSuperstructure.setWantedState(WantedState.SHOOT);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    if(mShooter.getIsReady()){
+      flag = true;
+    }
+    if(mTurret.getOnTarget() && flag){
+      mSuperstructure.shoot(true);
+    }else{
+      mSuperstructure.shoot(false);
+    }
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if(interrupted){
-      mShooter.setOpenLoop(0);
-    }
+    mSuperstructure.setWantedState(WantedState.IDLE);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return mShooter.getIsReady();
+    return false;//readd cell counter later.
   }
 }

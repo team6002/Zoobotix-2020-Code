@@ -30,7 +30,7 @@ public class ControlPanel extends Subsystem {
   }
 
   // motor 
-  TalonSRX mControlPanel = new TalonSRX(Constants.kControlPanel);
+  // TalonSRX mControlPanel = new TalonSRX(Constants.kControlPanel);
   Solenoid mDeploy =  new Solenoid(Constants.kControlPanelSolenoid);
 
   //target numbers
@@ -38,10 +38,10 @@ public class ControlPanel extends Subsystem {
 
   public ControlPanel(){
     // reset motor
-    mControlPanel.configFactoryDefault();
+    // mControlPanel.configFactoryDefault();
 
     // set mode to brake
-    mControlPanel.setNeutralMode(NeutralMode.Brake);
+    // mControlPanel.setNeutralMode(NeutralMode.Brake);
 
     //set solenoid
     mDeploy.set(false);
@@ -57,7 +57,7 @@ public class ControlPanel extends Subsystem {
   }
   
   public void setOpenLoop(double value){
-    mControlPanel.set(ControlMode.PercentOutput, value);
+    // mControlPanel.set(ControlMode.PercentOutput, value);
   }
 
   public void doRotation(){
@@ -65,7 +65,7 @@ public class ControlPanel extends Subsystem {
   }
 
   public void setRotation(double targetPosition){
-    mControlPanel.set(ControlMode.Position, targetPosition);
+    // mControlPanel.set(ControlMode.Position, targetPosition);
   }
 
   // accessor

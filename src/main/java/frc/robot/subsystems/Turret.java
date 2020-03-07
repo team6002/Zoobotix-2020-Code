@@ -68,6 +68,15 @@ public class Turret extends Subsystem {
     NONE;
   }
   private Hint mHint = Hint.NONE;
+
+  //for use when we are not exactly centered on target
+  public enum TargetOffset{
+    LEFT,
+    RIGHT,
+    CENTERED
+  }
+
+  private TargetOffset mTargetOffset = TargetOffset.CENTERED;
   
   double setpoint = 0;
   double center = 80;
@@ -185,7 +194,19 @@ public class Turret extends Subsystem {
     return table.getEntry("cY").getDouble(-1);
   }
   public double getOffset(){//positive means off to the left.
-    return center - readcX();
+    double targetOffset = 0;
+    switch(mTargetOffset){
+      case LEFT:
+        targetOffset = 10;
+        break;
+      case RIGHT:
+        targetOffset = -10;
+        break;
+      case CENTERED:
+        targetOffset = 0;
+        break;
+    }
+    return center + targetOffset - readcX();
   }
 
   public double updateTarget(double offset){
@@ -212,8 +233,12 @@ public class Turret extends Subsystem {
     return targetSetpoint;
   }
 
-  public void setHint(Hint hint){
-    mHint = hint;
+  public void setTargetOffset(TargetOffset pTargetOffset){
+    mTargetOffset = pTargetOffset;
+  }
+
+  public void setHint(Hint pHint){
+    mHint = pHint;
   }
   
 
@@ -227,10 +252,11 @@ public class Turret extends Subsystem {
 
   public void outputToSmartdashboard(){
     // SmartDashboard.putString("hint", mHint.toString());
+    SmartDashboard.putString("Target Offset", mTargetOffset.toString());
     SmartDashboard.putNumber("setpoint", setpoint);
     SmartDashboard.putNumber("offset", getOffset());
     SmartDashboard.putBoolean("onTarget", getOnTarget());
-    SmartDashboard.putNumber("Turret Position", mEncoder.getPosition());
+    // SmartDashboard.putNumber("Turret Position", mEncoder.getPosition());
     SmartDashboard.putString("Turret State", mControlState.toString());
   }
 

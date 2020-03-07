@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.robot.commands;
+package frc.robot.auto;
 
 import java.util.List;
 
@@ -26,29 +26,30 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.robot.Constants;
 import frc.robot.subsystems.Drive;
+import frc.robot.auto.commands.*;
 
 
-public class StepBackAndShoot extends SequentialCommandGroup {
+public class StepBackAndShootAuto extends SequentialCommandGroup {
   /**
    * Our simplest autonomous mode/
    * Starts moving back ~1 meter while reving the shooter.  Then starts shooting.
    */
   private static Drive mDrive = Drive.getInstance();
 
-  public StepBackAndShoot() {
+  public StepBackAndShootAuto() {
     // Add your commands in the super() call, e.g.
     // super(new FooCommand(), new BarCommand());
     super(
       new ParallelCommandGroup(
         new RevFlywheel(2300), 
-        driveTrajectory()
+        driveTrajectory(meterOffLine())
       ), 
-    new ShootCommand().withTimeout(5)
+    new ShootCommand().withTimeout(3)
     );
 
   }
 
-  public static Command driveTrajectory() {
+  private static Trajectory meterOffLine(){
     var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(mDrive.getFeedforward(),
         mDrive.getKinematics(),
         10);
@@ -70,7 +71,12 @@ public class StepBackAndShoot extends SequentialCommandGroup {
       config
     );
 
-    trajectory.relativeTo(mDrive.getPose());
+    return trajectory;
+  }
+
+  public static Command driveTrajectory(Trajectory trajectory) {
+
+    trajectory = trajectory.relativeTo(mDrive.getPose());
 
     PIDController leftController = new PIDController(Constants.kDrivePVel,0,0);
     PIDController rightController = new PIDController(Constants.kDrivePVel,0,0);
@@ -79,7 +85,6 @@ public class StepBackAndShoot extends SequentialCommandGroup {
         trajectory,
         mDrive::getPose,
         new RamseteController(Constants.kRamseteB, Constants.kRamseteZeta),
-        //disabledRamsete,
         mDrive.getFeedforward(),
         mDrive.getKinematics(),
         mDrive::getWheelSpeeds,
@@ -92,4 +97,10 @@ public class StepBackAndShoot extends SequentialCommandGroup {
 
     return ramseteCommand.andThen(() -> mDrive.tankDriveVolts(0, 0));
   }
+
+  @Override
+  public String toString(){
+    return "Step Back And Shoot Auto";
+  }
+
 }

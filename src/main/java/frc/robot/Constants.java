@@ -57,6 +57,8 @@ public class Constants{
     public final static double kDriveMaxVel = 2;
     public final static double kDriveMaxAccel = 1;
 
+    public final static double straightkP = 0.02;
+
     //Drive neo pid constants
     public final static double kNeoDriveP = 0.0;//5e-5;
     public final static double kNeoDriveI = 0;
@@ -97,8 +99,7 @@ public class Constants{
     public final static int kGateIntake = 11;
     public final static int kDeployIntake = 13;
 
-    public final static int kIntakeOut = 1;
-    public final static int kIntakeDown = 5;
+    
 
     //Indexer/Intake sensors
     public final static int kCellSensor = 0;
@@ -107,17 +108,22 @@ public class Constants{
 
     //Climber Ports
     public final static int kWinchMaster = 6;
-    public final static int kBalance = 12;
+    public final static int kBalance = 9;
     //solenoids
     public final static int kWinchRatchet = 0;
-    public final static int kClimberDeploy = 2;//change
+    public final static int kClimberDeploy = 2;
+    public final static int kIntakeOut = 1;
+    // public final static int kIntakeDown = 5;
 
     //climber pid constants
-    public final static double kClimberP = 0;
-    public final static double kClimberI = 0;
+    public final static double kClimberP = 0.05;
+    public final static double kClimberI = 0.00000001;
     public final static double kClimberD = 0;
     public final static double kClimberIz = 0;
     public final static double kClimberF = 0;
+
+    public final static double kClimberMaxAccel = 5;
+    public final static double kClimberMaxVel = 5;
 
     // control panel port
     public final static int kControlPanel = 11;

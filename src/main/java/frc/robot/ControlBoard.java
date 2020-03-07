@@ -27,11 +27,6 @@ public class ControlBoard {
     private XboxController xbox = new XboxController(0);
     private XboxController operator = new XboxController(1);
 
-    private LatchedBoolean aEdge = new LatchedBoolean();
-    private LatchedBoolean bEdge = new LatchedBoolean();
-    private LatchedBoolean xEdge = new LatchedBoolean();
-    private LatchedBoolean yEdge = new LatchedBoolean();
-
     public double getThrottle(){
         if(Math.abs(xbox.getY(Hand.kLeft)) > 0.10){
             return -xbox.getY(Hand.kLeft);
@@ -48,6 +43,7 @@ public class ControlBoard {
             return 0;
         }
     }
+
     public boolean getEjectIntake(){
         return xbox.getBackButton();
     }
@@ -72,10 +68,6 @@ public class ControlBoard {
     public boolean getSpinFlywheel(){
         return spinEdge.update(xbox.getYButton());
     }
-    // LatchedBoolean gateEdge = new LatchedBoolean();
-    public boolean getManualGate(){
-        return xbox.getAButton();
-    }
     LatchedBoolean shiftEdge = new LatchedBoolean();
     public boolean getShift(){
         return shiftEdge.update(xbox.getTriggerAxis(Hand.kRight) > 0.3);
@@ -83,8 +75,8 @@ public class ControlBoard {
     public boolean getShootButton(){
         return xbox.getBButton();
     }
-    public boolean getSlowMode(){
-        return xbox.getTriggerAxis(Hand.kRight) > 0.3;
+    public boolean getStraightDrive(){
+        return xbox.getTriggerAxis(Hand.kLeft) > 0.3;
     }
 
     //OPERATOR CONTROLS
@@ -114,11 +106,41 @@ public class ControlBoard {
     public boolean getOperatorIntakeReverse(){
         return operator.getXButton();
     }
-    LatchedBoolean controlPanelEdge = new LatchedBoolean();
-    public boolean getOperatorControlPanel(){
-        return controlPanelEdge.update(operator.getYButton());
-    }
+    // LatchedBoolean controlPanelEdge = new LatchedBoolean();
+    // public boolean getOperatorControlPanel(){
+    //     return controlPanelEdge.update(operator.getYButton());
+    // }
+
+
+
+    //operator climber controls
+
+
+    
     LatchedBoolean climbEdge = new LatchedBoolean();
+    LatchedBoolean climbNextEdge = new LatchedBoolean();
+    public boolean climbNext(){
+        return climbNextEdge.update(operator.getPOV() == 90);
+    }
+    public boolean climbBack(){
+        return climbEdge.update(operator.getPOV() == 270);
+    }
+    LatchedBoolean increaseEdge = new LatchedBoolean();
+    public boolean increaseClimbOffset(){
+        return increaseEdge.update(operator.getYButton());
+    }
+    LatchedBoolean decreaseEdge = new LatchedBoolean();
+    public boolean decreaseClimbOffset(){
+        return decreaseEdge.update(operator.getAButton());
+    }
+    LatchedBoolean higherEdge = new LatchedBoolean();
+    public boolean wantHigher(){
+        return higherEdge.update(operator.getPOV() == 0);
+    }
+    LatchedBoolean releaseEdge = new LatchedBoolean();
+    public boolean releasePiston(){
+        return releaseEdge.update(operator.getXButton());
+    }
     public boolean getClimb(){
         return climbEdge.update(operator.getStartButton());
     }
@@ -128,11 +150,14 @@ public class ControlBoard {
     public double getBalanceStick(){
         return operator.getX(Hand.kRight);
     }
-    public boolean getHintLeft(){
+    public boolean getTargetOffsetLeft(){
         return operator.getPOV() == 270;
     }
-    public boolean getHintRight(){
+    public boolean getTargetOffsetRight(){
         return operator.getPOV() == 90;
+    }
+    public boolean getTargetOffsetCenter(){
+        return operator.getPOV() == 0;
     }
     public boolean getControlPanelLeft(){
         return operator.getPOV() == 270;

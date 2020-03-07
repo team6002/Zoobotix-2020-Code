@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.I2C.Port;
+import frc.lib.util.LatchedBoolean;
 import frc.robot.Constants;
 import frc.robot.loops.*;
 
@@ -163,12 +164,15 @@ public class Drive extends SubsystemBase {
   public Rotation2d getHeading(){
     return Rotation2d.fromDegrees(Math.IEEEremainder(-mGyro.getAngle(), 360));
   }
+
   public Pose2d getPose(){
     return pose;
   }
+
   public DifferentialDriveKinematics getKinematics(){
     return mKinematics;
   }
+
   //TODO determine if we are running auto in low gear or high gear
   public DifferentialDriveWheelSpeeds getWheelSpeeds(){
     return new DifferentialDriveWheelSpeeds(
@@ -176,13 +180,17 @@ public class Drive extends SubsystemBase {
       mRightEncoder.getVelocity() / Constants.kLowGearRatio * 2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches) / 60
     );
   }
+
   public void resetOdometry(){
     resetEncoders();
+    zeroHeading();
     mOdometry.resetPosition(pose, getHeading());
   }
+
   public CANPIDController getLeftPidController(){
     return mLeftPIDController;
   }
+  
   public CANPIDController getRightPidController(){
     return mRightPIDController;
   }
@@ -227,10 +235,6 @@ public class Drive extends SubsystemBase {
                   case OPEN_LOOP:
                     break;
                   case PROFILE:
-                    // if(!mTrapezoidController.atGoal()){
-                    //   updateProfile();
-                    // }
-
                     break;
                   default:
                     System.out.println("Unexpected drive control state: " + mControlState);
@@ -254,9 +258,49 @@ public class Drive extends SubsystemBase {
     mLeftMaster.set(left);
   }
 
-  public void arcadeDrive(double throttle, double turn){
-    mRoboDrive.arcadeDrive(turn, throttle, true);
+  LatchedBoolean straightEdge = new LatchedBoolean();
+  boolean firstTimeFlag = false;
+  Rotation2d driveHeading = getHeading();
+
+  public void drive(double throttle, double turn, boolean wantStraight){
+    if(straightEdge.update(wantStraight)){
+      driveHeading = getHeading();
+    }
+    if(wantStraight){
+      double offset = driveHeading.getDegrees() - getHeading().getDegrees();
+      double z = Constants.straightkP * offset;
+      SmartDashboard.putNumber("z adjustment", z);
+      mRoboDrive.arcadeDrive(z, throttle);  
+    }else{
+      mRoboDrive.arcadeDrive(turn, throttle);
+    }
   }
+
+  //transforms the joystick input to conform with an array of speeds.
+  public double transformThrottle(double pThrottle){
+    double transformedThrottle = 0;
+    double throttle = pThrottle;
+    double[] speedArray = 
+    { 0.00, 0.14, 0.15, 0.17, 0.19
+      , 0.22, 0.27, 0.30, 0.35, 0.37
+      , 0.40, 0.44, 0.50, 0.65, 0.85
+      , 1.00, 1.00
+    };
+
+    int index = (int) (throttle * 16);
+    //make sure index is always positive
+    if(index < 0){
+      index = -index;
+    }
+    //make sure power is in the correct direction
+    if(throttle < 0){
+      transformedThrottle = -speedArray[index];
+    }else{
+      transformedThrottle = speedArray[index];
+    }
+
+    return transformedThrottle;
+  } 
 
   public synchronized void setVelocity(double left, double right){
     if(mControlState != ControlState.PROFILE){
@@ -328,10 +372,10 @@ public class Drive extends SubsystemBase {
   }
 
   public void outputToSmartDashboard(){
-    SmartDashboard.putNumber("leftEncoder Position Meters", leftEncoderPositionMeters());
-    SmartDashboard.putNumber("rightEncoder Positon Meters", rightEncoderPositionMeters());
-    SmartDashboard.putNumber("Left Side Wheel Speed", getWheelSpeeds().leftMetersPerSecond);
-    SmartDashboard.putNumber("Right Side Wheel Speed", getWheelSpeeds().rightMetersPerSecond);
+    // SmartDashboard.putNumber("leftEncoder Position Meters", leftEncoderPositionMeters());
+    // SmartDashboard.putNumber("rightEncoder Positon Meters", rightEncoderPositionMeters());
+    // SmartDashboard.putNumber("Left Side Wheel Speed", getWheelSpeeds().leftMetersPerSecond);
+    // SmartDashboard.putNumber("Right Side Wheel Speed", getWheelSpeeds().rightMetersPerSecond);
     SmartDashboard.putNumber("Heading", getHeading().getDegrees());
     SmartDashboard.putString("pose", mOdometry.getPoseMeters().toString());
     SmartDashboard.putBoolean("high gear", isHighGear());
